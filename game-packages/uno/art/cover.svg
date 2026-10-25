@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<rect width="1200" height="800" fill="#183e45"/>
+<circle cx="880" cy="390" r="300" fill="none" stroke="#31565c" stroke-width="2"/>
+<circle cx="880" cy="390" r="230" fill="none" stroke="#31565c" stroke-width="2"/>
+<path d="M650 90L1070 90M80 710L420 710" stroke="#b6cbc9" stroke-width="3"/>
+<text x="80" y="130" fill="#b6cbc9" font-family="Segoe UI, sans-serif" font-size="23" letter-spacing="6">PLAY YOUR LAST CARD</text>
+<text x="75" y="410" fill="#f5f0df" font-family="Georgia, serif" font-size="195" font-weight="bold" font-style="italic">UNO</text>
+<text x="90" y="465" fill="#b6cbc9" font-family="Microsoft YaHei, sans-serif" font-size="28">休闲版 · 2–4 人</text>
+<text x="90" y="535" fill="#f0c343" font-family="Segoe UI, sans-serif" font-size="19" letter-spacing="3">REVERSE / SKIP / WILD</text>
+<g transform="translate(785 145) rotate(24 100 180)"><rect x="10" y="16" width="195" height="308" rx="22" fill="#061e27"/><rect width="195" height="308" rx="22" fill="#f3edda"/><rect x="8" y="8" width="179" height="292" rx="16" fill="#2856a6"/><ellipse cx="98" cy="152" rx="64" ry="104" transform="rotate(20 98 152)" fill="none" stroke="#ffffff80" stroke-width="4"/><text x="98" y="177" text-anchor="middle" fill="#fff" font-size="90" font-weight="bold" font-family="Georgia">7</text></g>
+<g transform="translate(740 270) rotate(7 100 160)"><rect x="10" y="16" width="195" height="308" rx="22" fill="#061e27"/><rect width="195" height="308" rx="22" fill="#f3edda"/><rect x="8" y="8" width="179" height="292" rx="16" fill="#f0c343"/><ellipse cx="98" cy="152" rx="64" ry="104" transform="rotate(20 98 152)" fill="none" stroke="#342b1a60" stroke-width="4"/><text x="98" y="177" text-anchor="middle" fill="#342b1a" font-size="72" font-weight="bold" font-family="Segoe UI">⇄</text></g>
+<g transform="translate(650 350) rotate(-15 100 160)"><rect x="10" y="16" width="195" height="308" rx="22" fill="#061e27"/><rect width="195" height="308" rx="22" fill="#f3edda"/><rect x="8" y="8" width="179" height="292" rx="16" fill="#b72c43"/><ellipse cx="98" cy="152" rx="64" ry="104" transform="rotate(20 98 152)" fill="none" stroke="#ffffff80" stroke-width="4"/><text x="98" y="178" text-anchor="middle" fill="#fff" font-size="74" font-weight="bold" font-family="Georgia">+2</text></g>
+<g transform="translate(948 565) rotate(18)"><rect width="125" height="190" rx="17" fill="#f3edda"/><rect x="7" y="7" width="111" height="176" rx="12" fill="#27333e"/><path d="M62 40L99 85L62 135L25 85Z" fill="#247854"/><path d="M62 40L99 85H62Z" fill="#f0c343"/><path d="M99 85L62 135V85Z" fill="#2856a6"/><path d="M62 135L25 85H62Z" fill="#b72c43"/></g>
+</svg>

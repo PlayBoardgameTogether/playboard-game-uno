@@ -1,0 +1,346 @@
+const COLORS = ['red', 'yellow', 'green', 'blue'];
+const COPIES = {
+  '0': 2, '1': 2, '2': 2, '3': 2, '4': 2, '5': 2, '6': 2, '7': 2, '8': 2, '9': 2,
+  skip: 3, reverse: 3, draw2: 3, draw4: 2, skipAll: 2, discardAll: 3
+};
+const WILDS = { reverse4: 8, draw6: 4, draw10: 4, roulette: 8 };
+const PENALTIES = { draw2: 2, draw4: 4, reverse4: 4, draw6: 6, draw10: 10 };
+function deck() {
+  const cards = [];
+  for (const color of [...COLORS, 'wild']) {
+    for (const [value, count] of Object.entries(color === 'wild' ? WILDS : COPIES)) {
+      for (let copy = 0; copy < count; copy++) cards.push({ id: `${color}.${value}.${copy}`, color, value });
+    }
+  }
+  return cards;
+}
+function shuffle(cards, rng) {
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = rng.nextInt(0, i + 1);
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  return cards;
+}
+function active(state) {
+  return state.seats.map((seat, index) => index).filter(index => !state.eliminated.includes(state.seats[index]));
+}
+function next(state, from = state.turn, steps = 1) {
+  let index = from;
+  for (let step = 0; step < steps; step++) {
+    do { index = (index + state.direction + state.seats.length) % state.seats.length; }
+    while (state.eliminated.includes(state.seats[index]));
+  }
+  return index;
+}
+function take(state, index, count, rng, until = null) {
+  const cards = [];
+  for (let i = 0; i < count; i++) {
+    if (!state.deck.length) {
+      const top = state.discard.pop();
+      state.deck = shuffle([...state.discard, ...state.retired], rng);
+      state.discard = [top];
+      state.retired = [];
+    }
+    if (!state.deck.length) break;
+    const card = state.deck.pop();
+    state.hands[index].push(card);
+    cards.push(card);
+    if (state.hands[index].length >= 25) {
+      state.eliminated.push(state.seats[index]);
+      state.retired.push(...state.hands[index]);
+      state.hands[index] = [];
+      if (state.unoSeat === state.seats[index]) state.unoSeat = null;
+      break;
+    }
+    if (until && until(card)) break;
+  }
+  return cards;
+}
+function matches(state, card) {
+  return card.color === 'wild' || card.color === state.color || card.value === state.discard[state.discard.length - 1].value;
+}
+function canPlay(state, card) {
+  if (state.drawn !== null) return card.id === state.drawn;
+  if (state.pendingDraw) return (PENALTIES[card.value] || 0) >= state.lastDraw;
+  return matches(state, card);
+}
+function actions(state, index) {
+  if (index < 0 || state.winners.length || state.eliminated.includes(state.seats[index])) return [];
+  const result = [];
+  if (state.unoSeat !== null) {
+    result.push(state.unoSeat === state.seats[index]
+      ? { type: 'callUno' } : { type: 'catchUno', target: state.unoSeat });
+  }
+  if (index !== state.turn) return result;
+  if (state.phase === 'swap') {
+    return [...result, ...active(state).filter(other => other !== index).map(other => ({ type: 'swap', target: state.seats[other] }))];
+  }
+  if (state.phase === 'roulette') return [...result, ...COLORS.map(color => ({ type: 'roulette', color }))];
+  const hand = state.hands[index];
+  for (const card of hand) {
+    if (!canPlay(state, card)) continue;
+    // Roulette's recipient chooses the color in the following persistent phase.
+    for (const color of card.color === 'wild' && card.value !== 'roulette' ? COLORS : [null]) {
+      result.push({ type: 'play', cardId: card.id, color, uno: true });
+    }
+  }
+  if (state.pendingDraw || (!state.drawn && !hand.some(card => canPlay(state, card)))) result.push({ type: 'draw' });
+  return result;
+}
+function settle(state) {
+  const remaining = active(state);
+  if (remaining.length === 1) state.winners = [state.seats[remaining[0]]];
+  if (!state.winners.length && (state.turns >= 2000 || state.stalled >= remaining.length)) {
+    const minimum = Math.min(...remaining.map(index => state.hands[index].length));
+    state.winners = remaining.filter(index => state.hands[index].length === minimum).map(index => state.seats[index]);
+    state.last = '本局达到回合上限或无牌可摸，剩余玩家按最少手牌结算';
+  }
+  if (state.winners.length) {
+    state.phase = 'play';
+    state.drawn = null;
+    state.unoSeat = null;
+    state.pendingDraw = 0;
+    state.lastDraw = 0;
+  }
+}
+function endTurn(state, from = state.turn, steps = 1) {
+  state.phase = 'play';
+  state.drawn = null;
+  state.turn = next(state, from, steps);
+  state.turns++;
+}
+const game = {
+  manifest: {
+    id: 'online.uno-no-mercy', version: '1.0.0', contentVersion: '1.0.0', sdkRange: '^0.1.0',
+    name: 'UNO · 毫不留情', description: 'UNO 扩展玩法：168 张牌、罚牌叠加、7 换手、0 轮转与 25 张淘汰。',
+    players: { min: 2, max: 6 }, mode: 'rules-driven', capabilities: ['turn-based', 'private-view'],
+    defaultAssetPack: { id: 'online.uno-no-mercy.default', version: '1.0.0' }, developmentOnly: false
+  },
+  validateOptions(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length) throw new Error('No options');
+    return {};
+  },
+  parseAction(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid action');
+    const keys = Object.keys(value);
+    if (['draw', 'callUno'].includes(value.type) && keys.length === 1) return { type: value.type };
+    if (['swap', 'catchUno'].includes(value.type) && keys.length === 2 && typeof value.target === 'string') {
+      return { type: value.type, target: value.target };
+    }
+    if (value.type === 'roulette' && keys.length === 2 && COLORS.includes(value.color)) return { type: value.type, color: value.color };
+    if (value.type === 'play' && keys.length === 4 && typeof value.cardId === 'string'
+      && (value.color === null || COLORS.includes(value.color)) && typeof value.uno === 'boolean') {
+      return { type: 'play', cardId: value.cardId, color: value.color, uno: value.uno };
+    }
+    throw new Error('Invalid action');
+  },
+  setup({ seats, options, rng }) {
+    this.validateOptions(options);
+    if (!Array.isArray(seats) || seats.length < 2 || seats.length > 6 || new Set(seats).size !== seats.length
+      || !seats.every(seat => typeof seat === 'string' && seat.length > 0)) throw new Error('Invalid seats');
+    const state = {
+      seats, hands: seats.map(() => []), deck: shuffle(deck(), rng), discard: [], retired: [],
+      turn: 0, direction: 1, color: 'red', drawn: null, winners: [], eliminated: [],
+      phase: 'play', pendingDraw: 0, lastDraw: 0, unoSeat: null, seq: 0,
+      stalled: 0, turns: 0, last: '每人 7 张，座位 1 先出牌'
+    };
+    for (let i = 0; i < 7; i++) for (let seat = 0; seat < seats.length; seat++) take(state, seat, 1, rng);
+    // Opening action cards are ignored and remain in the discard pile.
+    do { state.discard.push(state.deck.pop()); } while (!/^\d$/.test(state.discard[state.discard.length - 1].value));
+    state.color = state.discard[state.discard.length - 1].color;
+    return { state, events: [] };
+  },
+  getView(state, viewer) {
+    const index = viewer.kind === 'seat' ? state.seats.indexOf(viewer.seatId) : -1;
+    return {
+      edition: 'no-mercy', players: state.seats.map((seatId, i) => ({ seatId, count: state.hands[i].length, eliminated: state.eliminated.includes(seatId) })),
+      you: index < 0 ? null : state.seats[index], hand: index < 0 ? [] : state.hands[index],
+      top: state.discard[state.discard.length - 1], color: state.color, direction: state.direction,
+      currentSeat: state.seats[state.turn], deckCount: state.deck.length, drawn: index === state.turn ? state.drawn : null,
+      winners: state.winners, last: state.last, actions: actions(state, index), phase: state.phase,
+      pendingDraw: state.pendingDraw, lastDraw: state.lastDraw, unoSeat: state.unoSeat,
+      turns: state.turns
+    };
+  },
+  getActionSpec(state, viewer) { return { actions: this.getView(state, viewer).actions }; },
+  validateAction(state, actor, input) {
+    const action = this.parseAction(input);
+    const index = actor.kind === 'seat' ? state.seats.indexOf(actor.seatId) : -1;
+    // The UNO declaration is a player choice; legal candidates advertise the safe choice.
+    const comparable = action.type === 'play' ? { ...action, uno: true } : action;
+    if (!actions(state, index).some(candidate => JSON.stringify(candidate) === JSON.stringify(comparable))) throw new Error('Illegal action');
+  },
+  applyAction(original, actor, input, rng) {
+    this.validateAction(original, actor, input);
+    const state = JSON.parse(JSON.stringify(original));
+    const action = this.parseAction(input);
+    const index = state.seats.indexOf(actor.seatId);
+    const label = `座位 ${index + 1}`;
+    const events = [];
+    state.seq++;
+    if (action.type === 'callUno') {
+      state.unoSeat = null;
+      state.last = `${label}喊了 UNO！`;
+    } else if (action.type === 'catchUno') {
+      const target = state.seats.indexOf(state.unoSeat);
+      const count = take(state, target, 2, rng).length;
+      state.unoSeat = null;
+      state.last = `${label}抓到座位 ${target + 1}漏喊 UNO，罚摸 ${count} 张`;
+      // A catch may eliminate the current player, but must not erase an unrelated draw stack.
+      if (state.eliminated.includes(state.seats[state.turn])) endTurn(state);
+    } else {
+      if (state.phase === 'play') state.unoSeat = null;
+      if (action.type === 'swap') {
+        const target = state.seats.indexOf(action.target);
+        [state.hands[index], state.hands[target]] = [state.hands[target], state.hands[index]];
+        state.unoSeat = null;
+        state.last = `${label}与座位 ${target + 1}交换手牌`;
+        endTurn(state);
+      } else if (action.type === 'roulette') {
+        const drawn = take(state, index, 168, rng, card => card.color === action.color);
+        state.color = action.color;
+        state.last = `${label}选择${{ red: '红', yellow: '黄', green: '绿', blue: '蓝' }[action.color]}色，轮盘摸了 ${drawn.length} 张并跳过`;
+        // Revealed roulette cards are public by the printed rules. Ordinary draws stay private.
+        events.push({ type: 'roulette', seatId: actor.seatId, cards: drawn, color: action.color });
+        endTurn(state);
+      } else if (action.type === 'draw') {
+        if (state.pendingDraw) {
+          const debt = state.pendingDraw;
+          const count = take(state, index, debt, rng).length;
+          state.pendingDraw = 0;
+          state.lastDraw = 0;
+          state.last = `${label}承受叠加罚牌 ${debt} 张，实际摸 ${count} 张并跳过`;
+          state.stalled = 0;
+          endTurn(state);
+        } else {
+          const drawn = take(state, index, 168, rng, card => matches(state, card));
+          state.last = `${label}连续摸了 ${drawn.length} 张牌`;
+          state.stalled = drawn.length ? 0 : state.stalled + 1;
+          if (!state.eliminated.includes(actor.seatId) && drawn.length && matches(state, drawn[drawn.length - 1])) {
+            state.drawn = drawn[drawn.length - 1].id;
+          } else endTurn(state);
+        }
+      } else {
+        state.stalled = 0;
+        const hand = state.hands[index];
+        const card = hand.splice(hand.findIndex(item => item.id === action.cardId), 1)[0];
+        const discarded = [];
+        if (card.value === 'discardAll') {
+          for (let i = hand.length - 1; i >= 0; i--) {
+            if (hand[i].color === card.color) discarded.push(...hand.splice(i, 1));
+          }
+          state.discard.push(...discarded);
+        }
+        state.discard.push(card);
+        if (card.value !== 'roulette') state.color = card.color === 'wild' ? action.color : card.color;
+        state.drawn = null;
+        state.last = `${label}出牌${discarded.length ? `，一并弃掉 ${discarded.length} 张同色牌` : ''}`;
+        events.push({ type: 'played', seatId: actor.seatId, card, color: state.color, discarded });
+        // This edition ends immediately on the final card, including 0/7 and penalty cards.
+        if (!hand.length) {
+          state.winners = [actor.seatId];
+          state.turns++;
+          state.last += '，已出完手牌获胜！';
+        } else if (card.value === '7') {
+          state.phase = 'swap';
+          state.last += '，请选择一位玩家交换手牌';
+        } else if (card.value === '0') {
+          const oldHands = state.hands.slice();
+          for (const from of active(state)) state.hands[next(state, from)] = oldHands[from];
+          state.unoSeat = null;
+          state.last += '，所有仍在局玩家按当前方向传递手牌';
+          endTurn(state);
+        } else {
+          if (hand.length === 1) {
+            state.unoSeat = action.uno ? null : actor.seatId;
+            if (action.uno) state.last += '，UNO！';
+          }
+          if (card.value === 'reverse' || card.value === 'reverse4') state.direction *= -1;
+          const penalty = PENALTIES[card.value] || 0;
+          if (penalty) {
+            state.pendingDraw += penalty;
+            state.lastDraw = penalty;
+            state.last += `，累计罚摸 ${state.pendingDraw} 张（可叠加至少 +${penalty}）`;
+            endTurn(state, index, card.value === 'reverse4' && active(state).length === 2 ? 2 : 1);
+          } else if (card.value === 'roulette') {
+            state.turn = next(state);
+            state.phase = 'roulette';
+            state.turns++;
+            state.last += '，下家选择轮盘颜色';
+          } else {
+            const skip = card.value === 'skip' || (card.value === 'reverse' && active(state).length === 2);
+            endTurn(state, index, card.value === 'skipAll' ? active(state).length : skip ? 2 : 1);
+          }
+        }
+      }
+    }
+    if (state.eliminated.length > original.eliminated.length) state.last += '；达到 25 张手牌，已淘汰';
+    settle(state);
+    events.push({ type: 'notice', text: state.last });
+    return { state, events };
+  },
+  projectEvents(events) {
+    return events.flatMap(event => {
+      if (event.type === 'notice') return [{ type: 'notice', text: event.text }];
+      if (event.type === 'played') return [{ type: 'played', seatId: event.seatId, card: event.card, color: event.color, discarded: event.discarded }];
+      if (event.type === 'roulette') return [{ type: 'roulette', seatId: event.seatId, cards: event.cards, color: event.color }];
+      return [];
+    });
+  },
+  getOutcome(state) { return state.winners.length ? { status: 'finished', winners: state.winners } : { status: 'ongoing' }; },
+  serialize(state) { return this.deserialize(state); },
+  deserialize(state) {
+    const integer = (value, max) => Number.isInteger(value) && value >= 0 && value <= max;
+    if (!state || !Array.isArray(state.seats) || state.seats.length < 2 || state.seats.length > 6
+      || new Set(state.seats).size !== state.seats.length || !state.seats.every(seat => typeof seat === 'string' && seat.length > 0)
+      || !Array.isArray(state.hands) || state.hands.length !== state.seats.length || !state.hands.every(Array.isArray)
+      || !Array.isArray(state.deck) || !Array.isArray(state.discard) || !state.discard.length || !Array.isArray(state.retired)
+      || !integer(state.turn, state.seats.length - 1) || ![1, -1].includes(state.direction) || !COLORS.includes(state.color)
+      || !['play', 'swap', 'roulette'].includes(state.phase) || !integer(state.pendingDraw, 400) || !integer(state.lastDraw, 10)
+      || (state.pendingDraw === 0 ? state.lastDraw !== 0 : ![2, 4, 6, 10].includes(state.lastDraw) || state.pendingDraw < state.lastDraw)
+      || !integer(state.seq, 100000) || !integer(state.turns, 2000) || !integer(state.stalled, state.seats.length)
+      || typeof state.last !== 'string' || !Array.isArray(state.winners) || !Array.isArray(state.eliminated)
+      || ![state.winners, state.eliminated].every(list => new Set(list).size === list.length && list.every(seat => state.seats.includes(seat)))) throw new Error('Invalid save');
+    const expected = new Map(deck().map(card => [card.id, card]));
+    const cards = [...state.hands.flat(), ...state.deck, ...state.discard, ...state.retired];
+    if (cards.length !== 168 || new Set(cards.map(card => card && card.id)).size !== 168
+      || !cards.every(card => card && expected.has(card.id) && card.color === expected.get(card.id).color
+        && card.value === expected.get(card.id).value && Object.keys(card).length === 3)) throw new Error('Invalid cards');
+    const remaining = active(state);
+    if (!remaining.length || !state.hands.every((hand, index) => state.eliminated.includes(state.seats[index]) ? hand.length === 0 : hand.length < 25)
+      || state.winners.some(seat => state.eliminated.includes(seat))
+      || (!state.winners.length && (remaining.length < 2 || state.eliminated.includes(state.seats[state.turn]) || remaining.some(index => !state.hands[index].length)))
+      || (state.drawn !== null && (state.phase !== 'play' || state.pendingDraw || !state.hands[state.turn].some(card => card.id === state.drawn && matches(state, card))))
+      || (state.unoSeat !== null && (!state.seats.includes(state.unoSeat) || state.eliminated.includes(state.unoSeat) || state.hands[state.seats.indexOf(state.unoSeat)].length !== 1))
+      || (state.phase !== 'play' && (state.drawn !== null || state.pendingDraw))
+      || (state.phase === 'swap' && state.discard[state.discard.length - 1].value !== '7')
+      || (state.phase === 'roulette' && state.discard[state.discard.length - 1].value !== 'roulette')) throw new Error('Invalid phase');
+    if (state.winners.length && (state.phase !== 'play' || state.drawn !== null || state.unoSeat !== null || state.pendingDraw
+      || (remaining.length !== 1 && state.turns < 2000 && state.stalled < remaining.length
+        && (state.winners.length !== 1 || state.hands[state.seats.indexOf(state.winners[0])].length !== 0)))) throw new Error('Invalid winners');
+    return state;
+  },
+  getFallbackAction(view) {
+    const plays = view.actions.filter(action => action.type === 'play');
+    const swaps = view.actions.filter(action => action.type === 'swap');
+    if (swaps.length) return swaps.reduce((best, action) => view.players.find(player => player.seatId === action.target).count < view.players.find(player => player.seatId === best.target).count ? action : best);
+    if (view.phase === 'roulette') return view.actions.find(action => action.type === 'roulette' && action.color === view.color);
+    const alert = view.actions.find(action => action.type === 'callUno' || action.type === 'catchUno');
+    if (alert) return alert;
+    const colorCount = color => view.hand.filter(card => card.color === color).length;
+    const score = action => {
+      const card = view.hand.find(item => item.id === action.cardId);
+      return (card.value === 'discardAll' ? colorCount(card.color) * 15 : 0) + (card.color === 'wild' ? 0 : 10)
+        + (PENALTIES[card.value] || 0) + (action.color ? colorCount(action.color) : 0);
+    };
+    if (plays.length) return plays.reduce((best, action) => score(action) > score(best) ? action : best);
+    return view.actions.find(action => action.type === 'draw') || null;
+  },
+  getDecisionContext(state, viewer) {
+    if (viewer.kind !== 'seat' || viewer.seatId !== state.seats[state.turn] || state.winners.length) return null;
+    const view = this.getView(state, viewer);
+    const preferred = this.getFallbackAction(view);
+    if (!preferred) return null;
+    return { decisionKey: `action:${state.seq}:${state.phase}`, legalActions: [preferred, ...view.actions.filter(action => JSON.stringify(action) !== JSON.stringify(preferred))] };
+  }
+};

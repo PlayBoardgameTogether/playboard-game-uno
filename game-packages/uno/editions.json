@@ -1,0 +1,14 @@
+{
+  "casual": {
+    "directory": ".",
+    "archive": "uno",
+    "client": "client.html",
+    "art": "art"
+  },
+  "no-mercy": {
+    "directory": "no-mercy",
+    "archive": "uno-no-mercy",
+    "client": "client.html",
+    "art": "art"
+  }
+}

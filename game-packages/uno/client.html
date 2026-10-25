@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UNO</title>
+<style>
+:root {
+  color-scheme: dark;
+  --table: #1e302b;
+  --ink: #fff4dd;
+  --muted: #c1cbbc;
+  --red: #a9293e;
+  --yellow: #edbd48;
+  --green: #21664b;
+  --blue: #274f95;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 25%, #38503b, var(--table) 75%);
+  color: var(--ink);
+  font: 16px/1.5 'Microsoft YaHei', 'Segoe UI', sans-serif;
+}
+main { max-width: 1024px; margin: auto; padding: 24px 24px 32px; }
+h1 { font: italic 800 32px/1 Georgia, serif; margin: 0 0 6px; letter-spacing: -1px; }
+header, .hand-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.subtitle, #direction { font-size: 13px; color: var(--muted); margin: 0; }
+button, input, summary { cursor: pointer; }
+button { font: inherit; }
+button:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--ink); outline-offset: 4px;
+}
+button:disabled { cursor: default; }
+#players { display: flex; gap: 10px; padding: 18px 0; }
+.player { flex: 1; min-width: 0; padding: 6px 10px; border-left: 3px solid transparent; font-size: 13px; color: var(--muted); }
+.player.current { border-color: var(--yellow); color: var(--ink); background: #ffffff0b; }
+.player strong { display: block; font-size: 22px; font-family: Georgia, serif; }
+.player.eliminated { border-left-style: dashed; }
+.player .warning { color: var(--yellow); }
+#arena { display: flex; justify-content: center; align-items: center; gap: 28px; min-height: 220px; padding: 22px 0; }
+.pile { height: 132px; width: 92px; display: grid; place-content: center; border: 2px dashed #ffffff55; border-radius: 12px; text-align: center; color: var(--muted); font-size: 12px; }
+.pile strong { color: var(--ink); font: 32px Georgia, serif; }
+.card {
+  position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 86px; min-width: 86px; height: 128px; border: 4px solid #f3edda; border-radius: 12px;
+  color: white; font-weight: 800; background: var(--blue); box-shadow: 0 4px 0 #0004;
+}
+.card::before { content: ''; position: absolute; inset: 18px 6px; border: 2px solid #ffffff65; border-radius: 50%; transform: rotate(25deg); }
+.card .value { position: relative; font: 800 30px/1 Georgia, serif; }
+.card small { position: relative; font-size: 11px; margin-top: 10px; }
+.red { background: var(--red); }
+.yellow { background: var(--yellow); color: #302514; }
+.green { background: var(--green); }
+.blue { background: var(--blue); }
+.wild { background: #282a29; }
+.wild .value { color: #ffe292; }
+.card:disabled { box-shadow: none; border-color: #b5baad; }
+.card .badge { position: absolute; bottom: 5px; padding: 1px 7px; border-radius: 20px; background: #171b18; color: #fff9ea; font: 700 11px/1.5 'Segoe UI', sans-serif; }
+.card.playable { border-color: #ffdc77; box-shadow: 0 0 0 2px #3b3c24, 0 5px 0 #0004; }
+#top.card { width: 100px; height: 148px; }
+#color { font-size: 14px; margin-top: 10px; text-align: center; }
+#color::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 7px; border-radius: 50%; background: var(--active-color); border: 1px solid #fff7; }
+#status { margin: 0; font-size: 18px; font-weight: 700; }
+#notice { min-height: 26px; color: var(--muted); font-size: 13px; margin: 4px 0 18px; }
+#hand { display: flex; gap: 10px; overflow-x: auto; padding: 10px 4px 16px; scrollbar-width: thin; }
+#hand-title { font-size: 13px; color: var(--muted); margin: 0; }
+#controls, #phase-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0 20px; }
+.primary, .secondary { border: 0; border-radius: 999px; padding: 11px 22px; min-height: 44px; font-weight: 700; }
+.primary { background: var(--yellow); color: #302514; }
+.secondary { background: #ffffff12; color: var(--ink); border: 1px solid #ffffff48; }
+.primary:disabled, .secondary:disabled { opacity: .55; }
+#sort { padding: 8px 12px; font-size: 13px; }
+label { font-size: 14px; display: flex; gap: 8px; align-items: center; min-height: 44px; }
+input { width: 20px; height: 20px; accent-color: var(--yellow); }
+details { border-top: 1px solid #ffffff24; padding: 12px 0; color: var(--muted); font-size: 13px; }
+details p { max-width: 720px; }
+summary { width: fit-content; min-height: 44px; padding: 10px 0; }
+#picker { background: #283a30; color: var(--ink); border: 1px solid #ffffff50; border-radius: 20px; padding: 20px; margin: 12px 0 20px; max-width: 360px; }
+#picker h2 { margin: 0 0 20px; font-size: 20px; }
+#choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+#choices button { border: 2px solid #ffffffaa; border-radius: 12px; padding: 14px 28px; color: white; font-weight: 700; }
+#choices .yellow { color: #302514; }
+.cancel { display: block; background: none; border: 0; color: var(--muted); margin: 12px auto 0; padding: 10px 12px; min-height: 44px; }
+#waiting { color: var(--muted); }
+[hidden] { display: none !important; }
+@media (max-width: 600px) {
+  main { padding: 18px 16px 24px; }
+  h1 { font-size: 28px; }
+  #players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 0 6px; gap: 6px; }
+  .player { padding: 4px 8px; }
+  .player strong { font-size: 19px; }
+  #arena { min-height: 190px; gap: 22px; padding: 18px 0; }
+  #top.card { width: 88px; height: 128px; }
+  .card { min-width: 76px; width: 76px; height: 116px; }
+  .card .value { font-size: 26px; }
+  .card small { margin-top: 7px; }
+  #controls { gap: 8px 12px; }
+  #hand { gap: 8px; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card:not(:disabled):hover { transform: translateY(-4px); }
+  .card { transition: transform .12s; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header><div><h1>UNO</h1><p id="edition" class="subtitle">先出完手牌</p></div><span id="direction" aria-label="出牌方向"></span></header>
+  <p id="waiting">等待桌面同步…</p>
+  <div id="board" hidden>
+    <section id="players" aria-label="玩家与牌数"></section>
+    <section id="arena" aria-label="桌面">
+      <div class="pile"><span>摸牌堆</span><strong id="deck-count"></strong></div>
+      <div><div id="top" class="card"></div><div id="color"></div></div>
+    </section>
+    <p id="status" role="status" aria-live="polite"></p><p id="notice"></p>
+    <div id="phase-actions" aria-label="当前行动" hidden></div>
+    <section id="picker" role="dialog" aria-labelledby="picker-title" hidden>
+      <h2 id="picker-title">选择下一张牌的颜色</h2><div id="choices"></div>
+      <button id="cancel" class="cancel" type="button">取消出牌</button>
+    </section>
+    <div class="hand-heading"><p id="hand-title">你的手牌</p><button id="sort" class="secondary" type="button" aria-pressed="false">按颜色整理</button></div>
+    <section id="hand" aria-label="你的手牌"></section>
+    <div id="controls">
+      <button id="draw" class="primary" type="button">摸一张</button>
+      <label id="uno-label" hidden><input id="uno" type="checkbox">出牌时喊 UNO</label>
+      <button id="uno-alert" class="secondary" type="button" hidden></button>
+    </div>
+    <details><summary>本局规则</summary>
+      <div id="casual-rules">
+        <p>同色或同符号即可出牌。跳过令下家停一回合；反转改变方向，两人时等同跳过；+2 / +4 让下家摸牌并跳过，不能叠加。</p>
+        <p>万能牌先选色；手中没有当前颜色才能出 +4，本版无质疑流程。摸牌后只能出新摸到的牌，也可以保留并结束回合。剩两张时勾选 UNO 再出牌，未喊则自动罚摸两张。</p>
+        <p>每人 7 张，单局出完获胜，不累计积分。牌堆空后重洗弃牌；无法继续或到 2000 回合时按最少手牌结算。</p>
+      </div>
+      <div id="mercy-rules" hidden>
+        <p>没有可出牌时，连续摸到可出为止，并出刚摸到的牌。+2 / +4 / +6 / +10 可以叠加，接牌面值不得小于上一张，与颜色无关；也可承受累计罚牌并跳过。</p>
+        <p>7 换手：选一位仍在局的玩家交换手牌。0 轮转：按当前方向传递所有手牌。全弃：弃掉同色手牌。全跳过：自己再出。双人反转 +4 先回到自己，可叠加转走。</p>
+        <p>颜色轮盘：下家选色，公开摸到该颜色为止，然后跳过。手牌达到 25 张立即淘汰，淘汰牌到下次洗牌才回到牌堆。只剩一位玩家也获胜。</p>
+        <p>剩一张时喊 UNO；漏喊可补喊，也可被其他玩家抓到罚摸 2 张，下家开始行动后窗口关闭。换手收到一张不设抓漏喊窗口。最后一张立即获胜，不再换手或追罚；不累计积分。</p>
+        <p>开局每人 7 张，忽略翻出的功能牌，座位 1 先手。僵局或 2000 回合上限按仍在局的最少手牌结算。普通手牌和摸牌保密，轮盘翻牌公开。</p>
+      </div>
+    </details>
+  </div>
+</main>
+<script>
+const colors = ['red', 'yellow', 'green', 'blue'];
+const names = { red: '红', yellow: '黄', green: '绿', blue: '蓝', wild: '万能' };
+const values = { skip: '⊘', reverse: '⇄', draw2: '+2', draw4: '+4', wild: '★', wild4: '+4', reverse4: '⇄+4', draw6: '+6', draw10: '+10', skipAll: '⊘∀', discardAll: '≋', roulette: '◉' };
+const descriptions = { skip: '跳过', reverse: '反转', draw2: '摸二张', draw4: '摸四张', wild: '选颜色', wild4: '摸四张', reverse4: '反转 +4', draw6: '摸六张', draw10: '摸十张', skipAll: '跳过所有人', discardAll: '同色全弃', roulette: '颜色轮盘', '7': '换手', '0': '轮转' };
+const $ = id => document.getElementById(id);
+let view = null;
+let busy = true;
+let pending = false;
+let selected = null;
+let sentSnapshot = null;
+let snapshot = null;
+let sorted = false;
+let handSignature = null;
+const seatLabel = seat => `座位 ${view.players.findIndex(player => player.seatId === seat) + 1}`;
+const mercy = () => view.edition === 'no-mercy';
+function face(element, card) {
+  element.className = `card ${card.color}`;
+  const number = document.createElement('span');
+  number.className = 'value';
+  number.textContent = values[card.value] || card.value;
+  const name = document.createElement('small');
+  name.textContent = (mercy() || !['0', '7'].includes(card.value)) && descriptions[card.value] ? descriptions[card.value] : names[card.color];
+  element.replaceChildren(number, name);
+  element.setAttribute('aria-label', `${names[card.color]}色 ${values[card.value] || card.value}`);
+}
+function closePicker(restoreFocus = false) {
+  const cardId = selected;
+  selected = null;
+  $('picker').hidden = true;
+  reportSize();
+  if (restoreFocus) {
+    const button = [...$('hand').children].find(item => item.dataset.cardId === cardId);
+    button?.focus();
+  }
+}
+function send(action) {
+  if (busy || pending || !view || view.winners.length) return;
+  pending = true;
+  sentSnapshot = snapshot;
+  closePicker();
+  render();
+  parent.postMessage({ type: 'boardgame:action', action }, '*');
+}
+function play(card) {
+  if (busy || pending) return;
+  const legal = view.actions.filter(action => action.type === 'play' && action.cardId === card.id);
+  if (!legal.length) return;
+  if (legal.some(action => action.color !== null)) {
+    selected = card.id;
+    $('picker').hidden = false;
+    reportSize();
+    $('choices').firstElementChild.focus();
+  } else send({ type: 'play', cardId: card.id, color: null, uno: $('uno').checked });
+}
+function renderHand(locked) {
+  const signature = JSON.stringify([view.hand, view.actions, view.drawn, locked, sorted]);
+  if (signature === handSignature) return;
+  handSignature = signature;
+  const focused = document.activeElement?.dataset.cardId;
+  const scroll = $('hand').scrollLeft;
+  const cards = [...view.hand];
+  if (sorted) cards.sort((a, b) => [...colors, 'wild'].indexOf(a.color) - [...colors, 'wild'].indexOf(b.color) || a.value.localeCompare(b.value) || a.id.localeCompare(b.id));
+  $('hand').replaceChildren(...cards.map(card => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.cardId = card.id;
+    face(button, card);
+    const playable = view.actions.some(action => action.type === 'play' && action.cardId === card.id);
+    button.disabled = locked || !playable;
+    if (!button.disabled) {
+      button.classList.add('playable');
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.setAttribute('aria-hidden', 'true');
+      badge.textContent = card.id === view.drawn ? '刚摸到 · 可出' : '可出';
+      button.append(badge);
+    }
+    button.addEventListener('click', () => play(card));
+    return button;
+  }));
+  $('hand').scrollLeft = scroll;
+  if (focused) [...$('hand').children].find(item => item.dataset.cardId === focused && !item.disabled)?.focus({ preventScroll: true });
+}
+function render() {
+  if (!view) return;
+  const locked = busy || pending;
+  const myTurn = view.currentSeat === view.you && !view.winners.length;
+  const eliminated = view.players.find(player => player.seatId === view.you)?.eliminated;
+  $('waiting').hidden = true;
+  $('board').hidden = false;
+  $('edition').textContent = mercy() ? '毫不留情 · 叠加、换手、淘汰' : '休闲版 · 先出完手牌';
+  $('casual-rules').hidden = mercy();
+  $('mercy-rules').hidden = !mercy();
+  $('direction').textContent = view.direction === 1 ? '顺时针 ↻' : '逆时针 ↺';
+  $('players').replaceChildren(...view.players.map(player => {
+    const item = document.createElement('div');
+    item.className = 'player' + (player.seatId === view.currentSeat && !view.winners.length ? ' current' : '') + (player.eliminated ? ' eliminated' : '');
+    if (player.seatId === view.currentSeat && !view.winners.length) item.setAttribute('aria-current', 'true');
+    const name = document.createElement('span');
+    name.textContent = `${seatLabel(player.seatId)}${player.seatId === view.you ? ' · 你' : ''}`;
+    const count = document.createElement('strong');
+    count.textContent = player.eliminated ? '已淘汰' : `${player.count} 张${player.count === 1 ? ' · UNO' : ''}`;
+    if (player.count === 1 || (mercy() && player.count >= 20)) count.className = 'warning';
+    item.append(name, count);
+    return item;
+  }));
+  face($('top'), view.top);
+  $('deck-count').textContent = view.deckCount;
+  $('color').textContent = `当前颜色：${names[view.color]}`;
+  $('color').style.setProperty('--active-color', `var(--${view.color})`);
+  let status = myTurn ? '轮到你了' : `等待${seatLabel(view.currentSeat)}出牌`;
+  if (myTurn && view.drawn) status = mercy() ? '请出刚摸到的牌' : '可出刚摸的牌，或结束回合';
+  if (myTurn && view.pendingDraw) status = `累计罚摸 ${view.pendingDraw} 张 · 可叠加 +${view.lastDraw} 或更高`;
+  if (myTurn && view.phase === 'swap') status = '选一位玩家交换手牌';
+  if (myTurn && view.phase === 'roulette') status = '颜色轮盘 · 选择要摸到的颜色';
+  if (eliminated) status = '你已淘汰 · 可以继续观看本局';
+  if (locked) status = '正在同步行动…';
+  if (view.winners.length) status = `本局结束 · ${view.winners.map(seatLabel).join('、')}获胜`;
+  $('status').textContent = status;
+  $('notice').textContent = view.last;
+  $('hand-title').textContent = view.you ? `你的手牌 · ${view.hand.length} 张` : '旁观视图';
+  renderHand(locked);
+  $('sort').hidden = !view.hand.length;
+  $('sort').disabled = locked;
+  $('sort').textContent = sorted ? '恢复摸牌顺序' : '按颜色整理';
+  $('sort').setAttribute('aria-pressed', String(sorted));
+  const drawAction = view.actions.find(action => action.type === 'draw' || action.type === 'pass');
+  $('draw').textContent = drawAction?.type === 'pass' ? '保留并结束回合' : view.pendingDraw ? `承受 ${view.pendingDraw} 张` : mercy() ? '摸到可出为止' : '摸一张';
+  $('draw').hidden = !!view.winners.length || !!eliminated || (myTurn && ['swap', 'roulette'].includes(view.phase));
+  $('draw').disabled = locked || !drawAction;
+  const needsUno = view.actions.some(action => {
+    if (action.type !== 'play') return false;
+    const card = view.hand.find(item => item.id === action.cardId);
+    return (view.hand.length === 2 && !(mercy() && ['0', '7'].includes(card.value)))
+      || (mercy() && card.value === 'discardAll' && view.hand.filter(item => item.color !== card.color).length === 1);
+  });
+  $('uno-label').hidden = !myTurn || !needsUno;
+  $('uno').disabled = locked;
+  const alert = view.actions.find(action => action.type === 'callUno' || action.type === 'catchUno');
+  $('uno-alert').hidden = !alert;
+  $('uno-alert').disabled = locked;
+  $('uno-alert').textContent = alert?.type === 'callUno' ? '补喊 UNO' : alert ? `抓${seatLabel(alert.target)}漏喊 UNO` : '';
+  $('phase-actions').replaceChildren(...view.actions.filter(action => ['swap', 'roulette'].includes(action.type)).map(action => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'primary';
+    button.disabled = locked;
+    button.textContent = action.type === 'swap' ? `与${seatLabel(action.target)}交换 · ${view.players.find(player => player.seatId === action.target).count} 张` : `轮盘选${names[action.color]}色`;
+    button.addEventListener('click', () => send(action));
+    return button;
+  }));
+  $('phase-actions').hidden = !$('phase-actions').children.length;
+  for (const button of $('choices').children) button.disabled = locked;
+  reportSize();
+}
+function reportSize() {
+  parent.postMessage({ type: 'boardgame:resize', height: Math.max(320, Math.ceil(document.querySelector('main').getBoundingClientRect().height)) }, '*');
+}
+$('sort').addEventListener('click', () => { sorted = !sorted; render(); });
+$('draw').addEventListener('click', () => {
+  const action = view.actions.find(item => item.type === 'draw' || item.type === 'pass');
+  if (action) send(action);
+});
+$('uno-alert').addEventListener('click', () => {
+  const action = view.actions.find(item => item.type === 'callUno' || item.type === 'catchUno');
+  if (action) send(action);
+});
+for (const color of colors) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = color;
+  button.textContent = names[color];
+  button.addEventListener('click', () => {
+    if (!selected || !view.actions.some(action => action.type === 'play' && action.cardId === selected && action.color === color)) return;
+    send({ type: 'play', cardId: selected, color, uno: $('uno').checked });
+  });
+  $('choices').append(button);
+}
+$('cancel').addEventListener('click', () => closePicker(true));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && selected) { event.preventDefault(); closePicker(true); }
+});
+window.addEventListener('message', event => {
+  if (event.source !== parent || !event.data || event.data.type !== 'boardgame:view') return;
+  const incoming = event.data.view;
+  const encoded = JSON.stringify(incoming);
+  const changed = encoded !== snapshot;
+  const nextBusy = !!event.data.busy;
+  const busyChanged = nextBusy !== busy;
+  // Idle echoes of the same view keep both the draft and the submit lock intact.
+  if (pending && (encoded !== sentSnapshot || nextBusy || (busy && !nextBusy))) pending = false;
+  if (!changed && !busyChanged) return;
+  if (selected && (changed || nextBusy)) closePicker();
+  if (changed) {
+    $('uno').checked = false;
+    if (view?.you !== incoming.you) { sorted = false; handSignature = null; }
+  }
+  busy = nextBusy;
+  view = incoming;
+  snapshot = encoded;
+  if (!pending) sentSnapshot = null;
+  render();
+});
+window.addEventListener('resize', () => { if (view) render(); });
+document.querySelector('details').addEventListener('toggle', () => { if (view) render(); });
+parent.postMessage({ type: 'boardgame:ready' }, '*');
+</script>
+</body>
+</html>

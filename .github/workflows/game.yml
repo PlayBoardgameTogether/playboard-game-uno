@@ -1,0 +1,61 @@
+name: Test, package and release game
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['*-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm verify
+      - uses: actions/upload-artifact@v7
+        with:
+          name: game-release
+          path: dist/release/
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: game-release
+          path: dist/release
+      - name: Verify and publish immutable version assets
+        working-directory: dist/release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          sha256sum --check SHA256SUMS
+          gh release create "$TAG" ./*.zip SHA256SUMS release.json --verify-tag --title "$TAG" --generate-notes

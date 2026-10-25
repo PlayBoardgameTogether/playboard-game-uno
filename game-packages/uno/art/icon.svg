@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<rect width="256" height="256" rx="40" fill="#183e45"/>
+<g transform="translate(145 34) rotate(18 36 76)"><rect width="72" height="118" rx="10" fill="#f3edda"/><rect x="5" y="5" width="62" height="108" rx="6" fill="#2856a6"/></g>
+<g transform="translate(101 39) rotate(2 36 76)"><rect width="72" height="118" rx="10" fill="#f3edda"/><rect x="5" y="5" width="62" height="108" rx="6" fill="#f0c343"/></g>
+<g transform="translate(55 53) rotate(-17 36 76)"><rect width="72" height="118" rx="10" fill="#f3edda"/><rect x="5" y="5" width="62" height="108" rx="6" fill="#b72c43"/><text x="36" y="76" text-anchor="middle" fill="#fff" font-size="39" font-weight="bold" font-family="Georgia">+2</text></g>
+<text x="128" y="216" text-anchor="middle" fill="#f5f0df" font-family="Georgia" font-style="italic" font-size="56" font-weight="bold">UNO</text>
+</svg>

@@ -1,0 +1,13 @@
+{
+  "repository": "PlayBoardgameTogether/playboard-game-uno",
+  "assets": [
+    {
+      "id": "online.uno",
+      "archive": "uno"
+    },
+    {
+      "id": "online.uno-no-mercy",
+      "archive": "uno-no-mercy"
+    }
+  ]
+}

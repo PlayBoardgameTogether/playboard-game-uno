@@ -1,0 +1,23 @@
+{
+  "name": "playboard-game-uno",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run tests/unit",
+    "build": "node scripts/package-uno.mjs",
+    "verify": "vitest run tests/release.test.ts",
+    "test:ui": "node scripts/check-uno-package.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0",
+    "fflate": "0.8.2",
+    "quickjs-emscripten": "0.31.0",
+    "vitest": "3.2.4",
+    "zod": "4.1.5"
+  }
+}

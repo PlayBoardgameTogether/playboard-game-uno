@@ -1,0 +1,228 @@
+const COLORS = ['red', 'yellow', 'green', 'blue'];
+const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2'];
+function deck() {
+  const cards = [];
+  for (const color of COLORS) {
+    for (const value of VALUES) {
+      for (let copy = 0; copy < (value === '0' ? 1 : 2); copy++) {
+        cards.push({ id: `${color}.${value}.${copy}`, color, value });
+      }
+    }
+  }
+  for (const value of ['wild', 'wild4']) {
+    for (let copy = 0; copy < 4; copy++) cards.push({ id: `wild.${value}.${copy}`, color: 'wild', value });
+  }
+  return cards;
+}
+function shuffle(cards, rng) {
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = rng.nextInt(0, i + 1);
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  return cards;
+}
+function next(state, steps = 1) {
+  return (state.turn + state.direction * steps + state.seats.length * steps) % state.seats.length;
+}
+function draw(state, index, count, rng) {
+  const taken = [];
+  for (let i = 0; i < count; i++) {
+    if (!state.deck.length && state.discard.length > 1) {
+      const top = state.discard.pop();
+      state.deck = shuffle(state.discard, rng);
+      state.discard = [top];
+    }
+    if (!state.deck.length) break;
+    const card = state.deck.pop();
+    state.hands[index].push(card);
+    taken.push(card);
+  }
+  return taken;
+}
+function playable(state, card, hand) {
+  if (state.drawn !== null && card.id !== state.drawn) return false;
+  if (card.value === 'wild4') return !hand.some(other => other.color === state.color);
+  return card.color === 'wild' || card.color === state.color || card.value === state.discard[state.discard.length - 1].value;
+}
+function actions(state, index) {
+  if (state.winners.length || index !== state.turn) return [];
+  const result = [];
+  const hand = state.hands[index];
+  for (const card of hand) {
+    if (!playable(state, card, hand)) continue;
+    for (const color of card.color === 'wild' ? COLORS : [null]) {
+      result.push({ type: 'play', cardId: card.id, color, uno: hand.length === 2 });
+    }
+  }
+  result.push({ type: state.drawn === null ? 'draw' : 'pass' });
+  return result;
+}
+const game = {
+  manifest: {
+    id: 'online.uno', version: '1.2.0', contentVersion: '1.1.0', sdkRange: '^0.1.0',
+    name: 'UNO · 休闲版', description: '2–4 人 UNO：数字牌、跳过、反转、+2、万能与 +4。原创桌面，支持真人与 AI。',
+    players: { min: 2, max: 4 }, mode: 'rules-driven', capabilities: ['turn-based', 'private-view'],
+    defaultAssetPack: { id: 'online.uno.default', version: '1.2.0' }, developmentOnly: false
+  },
+  validateOptions(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length) throw new Error('No options');
+    return {};
+  },
+  parseAction(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid action');
+    if (['draw', 'pass'].includes(value.type) && Object.keys(value).length === 1) return { type: value.type };
+    if (value.type === 'play' && Object.keys(value).length === 4 && typeof value.cardId === 'string'
+      && (value.color === null || COLORS.includes(value.color)) && typeof value.uno === 'boolean') {
+      return { type: 'play', cardId: value.cardId, color: value.color, uno: value.uno };
+    }
+    throw new Error('Invalid action');
+  },
+  setup({ seats, options, rng }) {
+    this.validateOptions(options);
+    if (!Array.isArray(seats) || seats.length < 2 || seats.length > 4 || new Set(seats).size !== seats.length
+      || !seats.every(seat => typeof seat === 'string' && seat.length > 0)) throw new Error('Invalid seats');
+    const state = { seats, hands: seats.map(() => []), deck: shuffle(deck(), rng), discard: [],
+      turn: 0, direction: 1, color: 'red', drawn: null, winners: [], stalled: 0, turns: 0, last: '每人 7 张，座位 1 先出牌' };
+    for (let i = 0; i < 7; i++) for (let seat = 0; seat < seats.length; seat++) draw(state, seat, 1, rng);
+    const index = state.deck.findIndex(card => /^\d$/.test(card.value));
+    const first = state.deck.splice(index, 1)[0];
+    state.discard.push(first);
+    state.color = first.color;
+    return { state, events: [] };
+  },
+  getView(state, viewer) {
+    const index = viewer.kind === 'seat' ? state.seats.indexOf(viewer.seatId) : -1;
+    return { players: state.seats.map((seatId, i) => ({ seatId, count: state.hands[i].length })),
+      you: index < 0 ? null : state.seats[index], hand: index < 0 ? [] : state.hands[index],
+      top: state.discard[state.discard.length - 1], color: state.color, direction: state.direction,
+      currentSeat: state.seats[state.turn], deckCount: state.deck.length, drawn: index === state.turn ? state.drawn : null,
+      winners: state.winners, last: state.last, actions: actions(state, index) };
+  },
+  getActionSpec(state, viewer) { return { actions: this.getView(state, viewer).actions }; },
+  validateAction(state, actor, input) {
+    const action = this.parseAction(input);
+    if (actor.kind !== 'seat' || actor.seatId !== state.seats[state.turn] || state.winners.length) throw new Error('Not your turn');
+    if (action.type === 'draw' && state.drawn === null) return;
+    if (action.type === 'pass' && state.drawn !== null) return;
+    if (action.type === 'play') {
+      const hand = state.hands[state.turn];
+      const card = hand.find(item => item.id === action.cardId);
+      if (card && playable(state, card, hand) && (card.color === 'wild' ? COLORS.includes(action.color) : action.color === null)) return;
+    }
+    throw new Error('Illegal action');
+  },
+  applyAction(state, actor, input, rng) {
+    this.validateAction(state, actor, input);
+    const action = this.parseAction(input);
+    const index = state.turn;
+    const label = `座位 ${index + 1}`;
+    const events = [];
+    const finishTurn = () => {
+      state.drawn = null;
+      state.turn = next(state);
+      state.turns++;
+      if (state.stalled >= state.seats.length || state.turns >= 2000) {
+        const minimum = Math.min(...state.hands.map(hand => hand.length));
+        state.winners = state.seats.filter((seat, i) => state.hands[i].length === minimum);
+        state.last = '僵局结束：手牌最少者获胜（可并列）';
+      }
+    };
+    if (action.type === 'draw') {
+      const taken = draw(state, index, 1, rng);
+      state.last = `${label}摸了 ${taken.length} 张牌`;
+      if (taken.length) {
+        state.stalled = 0;
+        state.drawn = taken[0].id;
+        if (!playable(state, taken[0], state.hands[index])) finishTurn();
+      } else {
+        state.stalled++;
+        finishTurn();
+      }
+    } else if (action.type === 'pass') {
+      state.last = `${label}保留摸到的牌，结束回合`;
+      finishTurn();
+    } else {
+      state.stalled = 0;
+      const hand = state.hands[index];
+      const card = hand.splice(hand.findIndex(item => item.id === action.cardId), 1)[0];
+      state.discard.push(card);
+      state.color = card.color === 'wild' ? action.color : card.color;
+      state.drawn = null;
+      state.last = `${label}出牌${action.uno && hand.length === 1 ? '，UNO！' : ''}`;
+      if (hand.length === 1 && !action.uno) {
+        const penalty = draw(state, index, 2, rng).length;
+        state.last += `；忘喊 UNO，罚摸 ${penalty} 张`;
+      }
+      if (card.value === 'reverse') state.direction *= -1;
+      const target = next(state);
+      const penalty = card.value === 'draw2' ? 2 : card.value === 'wild4' ? 4 : 0;
+      if (penalty) {
+        const count = draw(state, target, penalty, rng).length;
+        state.last += `；座位 ${target + 1}摸 ${count} 张并跳过`;
+      }
+      if (!hand.length) {
+        state.winners = [actor.seatId];
+        state.last += '，已出完手牌获胜！';
+      } else {
+        const skip = penalty || card.value === 'skip' || (card.value === 'reverse' && state.seats.length === 2);
+        state.turn = next(state, skip ? 2 : 1);
+      }
+      state.turns++;
+      if (!state.winners.length && state.turns >= 2000) {
+        const minimum = Math.min(...state.hands.map(cards => cards.length));
+        state.winners = state.seats.filter((seat, i) => state.hands[i].length === minimum);
+        state.last = '回合上限：手牌最少者获胜（可并列）';
+      }
+      events.push({ type: 'played', seatId: actor.seatId, card, color: state.color });
+    }
+    events.push({ type: 'notice', text: state.last });
+    return { state, events };
+  },
+  projectEvents(events) {
+    return events.filter(event => event.type === 'played' || event.type === 'notice').map(event => event.type === 'notice'
+      ? { type: 'notice', text: event.text } : { type: 'played', seatId: event.seatId, card: event.card, color: event.color });
+  },
+  getOutcome(state) {
+    return state.winners.length ? { status: 'finished', winners: state.winners } : { status: 'ongoing' };
+  },
+  serialize(state) { return this.deserialize(state); },
+  deserialize(state) {
+    if (!state || !Array.isArray(state.seats) || state.seats.length < 2 || state.seats.length > 4
+      || new Set(state.seats).size !== state.seats.length || !state.seats.every(seat => typeof seat === 'string' && seat.length > 0)
+      || !Array.isArray(state.hands) || state.hands.length !== state.seats.length || !state.hands.every(Array.isArray)
+      || !Array.isArray(state.deck) || !Array.isArray(state.discard) || !state.discard.length
+      || !Number.isInteger(state.turn) || state.turn < 0 || state.turn >= state.seats.length
+      || ![1, -1].includes(state.direction) || !COLORS.includes(state.color)
+      || !Number.isInteger(state.stalled) || state.stalled < 0 || state.stalled > state.seats.length
+      || !Number.isInteger(state.turns) || state.turns < 0 || state.turns > 2000 || typeof state.last !== 'string'
+      || !Array.isArray(state.winners) || new Set(state.winners).size !== state.winners.length
+      || !state.winners.every(seat => state.seats.includes(seat))) throw new Error('Invalid save');
+    const all = [...state.deck, ...state.discard, ...state.hands.flat()];
+    const expected = deck();
+    const byId = Object.fromEntries(expected.map(card => [card.id, card]));
+    if (all.length !== 108 || new Set(all.map(card => card && card.id)).size !== 108
+      || !all.every(card => card && Object.prototype.hasOwnProperty.call(byId, card.id) && card.color === byId[card.id].color && card.value === byId[card.id].value && Object.keys(card).length === 3)) throw new Error('Invalid cards');
+    if (state.drawn !== null && !state.hands[state.turn].some(card => card.id === state.drawn)) throw new Error('Invalid drawn card');
+    if (state.winners.length && (state.drawn !== null || (state.turns < 2000 && state.stalled < state.seats.length
+      && (state.winners.length !== 1 || state.hands[state.seats.indexOf(state.winners[0])].length !== 0)))) throw new Error('Invalid winners');
+    return state;
+  },
+  getDecisionContext(state, viewer) {
+    const view = this.getView(state, viewer);
+    if (!view.actions.length) return null;
+    const preferred = this.getFallbackAction(view);
+    return { decisionKey: `turn:${state.turns}:${state.drawn === null ? 'play' : 'drawn'}`,
+      legalActions: [preferred, ...view.actions.filter(action => JSON.stringify(action) !== JSON.stringify(preferred))] };
+  },
+  getFallbackAction(view) {
+    if (!view.actions.length) return null;
+    const colored = Object.fromEntries(COLORS.map(color => [color, view.hand.filter(card => card.color === color).length]));
+    const score = action => {
+      if (action.type !== 'play') return -1000;
+      const card = view.hand.find(item => item.id === action.cardId);
+      return (card.color === 'wild' ? -10 : 20) + (['draw2', 'skip', 'reverse', 'wild4'].includes(card.value) ? 8 : 0)
+        + (action.color ? colored[action.color] * 3 : colored[card.color]) + (view.hand.length === 1 ? 100 : 0);
+    };
+    return view.actions.reduce((best, action) => score(action) > score(best) ? action : best, view.actions[0]);
+  }
+};

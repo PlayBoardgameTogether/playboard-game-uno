@@ -1,0 +1,53 @@
+{
+  "repository": "PlayBoardgameTogether/PlayBoardgameTogether",
+  "commit": "a7e36d32e2febeb5bd7013752f099d01d0502316",
+  "game": "uno",
+  "platformVersion": "0.17.0",
+  "sdkVersion": "0.1.0",
+  "ownedFiles": [
+    "game-packages/uno/README.md",
+    "game-packages/uno/art/cover.svg",
+    "game-packages/uno/art/icon.svg",
+    "game-packages/uno/client.html",
+    "game-packages/uno/editions.json",
+    "game-packages/uno/game.json",
+    "game-packages/uno/no-mercy/art/cover.svg",
+    "game-packages/uno/no-mercy/art/icon.svg",
+    "game-packages/uno/no-mercy/game.json",
+    "game-packages/uno/no-mercy/server.txt",
+    "game-packages/uno/server.txt",
+    "scripts/package-uno.mjs",
+    "scripts/uno-package.mjs",
+    "scripts/check-uno-package.mjs",
+    "tests/unit/uno-package.test.ts",
+    "tests/unit/uno-no-mercy.test.ts",
+    "docs/games/uno.md"
+  ],
+  "files": {
+    "game-packages/uno/README.md": "44ce95cabb7a73164f6b7b67536f59299b2dfa4920e11236978eb6064077bf82",
+    "game-packages/uno/art/cover.svg": "bfbf9796484498669b4b3d68a021f3249417e58dd39a508502889a1ef62c58e4",
+    "game-packages/uno/art/icon.svg": "34e842d32d6bf00054ec6a69b28eac94808e26936c8838b8aaa3f29ebd9cfc6f",
+    "game-packages/uno/client.html": "d12a132eaac3603c92c2f3c76476a2c8bfef55b1925b5747dcf3fc9ee4838890",
+    "game-packages/uno/editions.json": "55b9707e62e6a075872d745cd0eda37cd8c6605f49ba57a5f4b4259321d4a176",
+    "game-packages/uno/game.json": "7c97d44e098009e839956686069d30b64c19786543258f4c1c8b57ae27bb7990",
+    "game-packages/uno/no-mercy/art/cover.svg": "fa98c7a8dd42d19a76d9fe10b6bf7e57b58f178b6e0fe0407a7c39d45c51cef2",
+    "game-packages/uno/no-mercy/art/icon.svg": "6b97fa19424eef3123536ab082020328a3e4adc223d0df5ee46f285f1318dd4c",
+    "game-packages/uno/no-mercy/game.json": "cd1d501a98dfcff7927c91be37975ea5bf29ba79f7546b51c5ed008da5cf2da1",
+    "game-packages/uno/no-mercy/server.txt": "5b065f683eb67a5b69b25f4803a3554a8360b0d686feea9987595fa7312c0223",
+    "game-packages/uno/server.txt": "ad287444056fac3ffdb9bebe98a1443f4c491e5a643036d18e642cc46940a7e5",
+    "scripts/package-uno.mjs": "07bfcb00e0d6ceee4d48143b1f58299d670cc7e6fb08ac781ca432fbd9c66721",
+    "scripts/uno-package.mjs": "4f16435e5f2a1feffdd3784b446c4e75782d2762def13148bf4bb95fcb01f362",
+    "scripts/check-uno-package.mjs": "37bd46d3790fbd0e7c027ea9163c3052d61d2d5f40294fa545a76623d0a14055",
+    "tests/unit/uno-package.test.ts": "33fac45026067efff29d22d49e8324194d96d437b11cdc29d6e75c67f173596d",
+    "tests/unit/uno-no-mercy.test.ts": "f41dd6ded2a0d76f8ffcc1cec221613e8d25a16dbefd9506670936b70b26cc6c",
+    "docs/games/uno.md": "b5d75a2f7a8c2e0369c17f9937f1890186769fb5a8450a562f9528b38de2d65b",
+    "packages/game-sdk/src/index.ts": "7cac28f2e18b64a995d2980e1d57c4d877387ef1231a83e9f7b877197140a8c3",
+    "apps/api/src/registry/package-runtime.ts": "c92504b1a982e28198d68cf3b598b7cce5f88e7440f2257a7001cb2e919e77c1",
+    "apps/api/src/catalog/game-package.ts": "bf310e4dd4958afe06b91cf14ece1d09a4bfc2859731a983d96687fa02b9a00c",
+    "apps/api/src/catalog/package-art.ts": "b4af59861833180cac85ad873b20c55969a51c475b6413cbba4770ac7bd7dd40",
+    "apps/api/src/errors.ts": "afa3d78ef9c2652db7a91f5644dc00d11684f17b67c48dfcbca4fceb459cddd1"
+  },
+  "adaptations": [
+    "apps/api/src/errors.ts: type-only ErrorCode import points to an extracted platform error-code snapshot"
+  ]
+}

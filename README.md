@@ -32,3 +32,11 @@ pnpm verify
 初始游戏和规则测试来自平台提交 `a7e36d32e2febeb5bd7013752f099d01d0502316`，路径及原始摘要记录在 SOURCE.json。`apps/api/src` 和 `packages/game-sdk/src` 仅包含测试所需的固定兼容性快照，不启动平台 API，也不依赖主仓库工作区。可在明确的平台版本升级时更新该快照；生产安装仍以平台自身审核为准。
 
 玩法、素材和历史说明见 [游戏说明](game-packages/uno/README.md)。其中平台集成/E2E 命令需在平台主仓库运行；本仓库的独立验证命令以上文为准。
+
+## 许可证
+
+Copyright (C) 2026 TheTopBoardgameAssociation
+
+除另有声明的文件外，本项目采用 [GNU GPL v3.0](LICENSE)（`GPL-3.0-only`）开源协议，允许按协议使用、修改和分发。本软件不提供任何担保，具体条款见 LICENSE。
+
+已有单独许可声明的素材、第三方代码和依赖继续遵循各自的许可与署名要求；例如标明 CC0-1.0 的资源仍按原许可分发。

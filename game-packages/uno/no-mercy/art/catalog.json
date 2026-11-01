@@ -4,9 +4,11 @@
   "authoring": "Codex built-in imagegen",
   "license": "GPL-3.0-only",
   "files": {
-    "icon": "icon.png",
-    "cover": "cover.png",
-    "background": "background.png"
+    "icon": "icon.png"
   },
-  "runtimeGameVersion": "1.0.1"
+  "runtimeGameVersion": "1.0.1",
+  "usage": {
+    "icon": "game-avatar"
+  },
+  "backgroundPolicy": "Existing main-branch artwork retained; landscape explorations under design are drafts only."
 }

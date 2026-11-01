@@ -1,6 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { URL } from 'node:url';
-import { chromium } from '@playwright/test';
 import { buildUnoPackage, unoEditions } from './uno-package.mjs';
 
 const editions = process.argv.slice(2);
@@ -10,13 +9,8 @@ for (const edition of editions) {
 }
 const output = new URL('../dist/game-packages/', import.meta.url);
 await mkdir(output, { recursive: true });
-const browser = await chromium.launch();
-try {
-  for (const edition of editions) {
-    const { filename, bytes } = await buildUnoPackage(edition, browser);
-    await writeFile(new URL(filename, output), bytes);
-    console.log(`UNO ${edition}: ${filename} (${bytes.length} bytes)`);
-  }
-} finally {
-  await browser.close();
+for (const edition of editions) {
+  const { filename, bytes } = await buildUnoPackage(edition);
+  await writeFile(new URL(filename, output), bytes);
+  console.log(`UNO ${edition}: ${filename} (${bytes.length} bytes)`);
 }

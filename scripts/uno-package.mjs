@@ -22,24 +22,15 @@ export function unoArchive(files) {
   return zipSync(files, { mtime: new Date('2026-10-24T00:00:00Z'), level: 9 });
 }
 
-export async function buildUnoPackage(edition, browser) {
+export async function buildUnoPackage(edition) {
   const files = await unoPackageFiles(edition);
   const config = unoEditions[edition];
   const descriptor = JSON.parse(files['game.json'].toString());
   descriptor.presentation = {};
-  for (const [kind, source, width, height] of [
-    ['icon', 'icon.svg', 256, 256], ['cover', 'cover.svg', 1200, 675], ['background', 'cover.svg', 1200, 675],
-  ]) {
-    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
-    try {
-      const svg = await readFile(new URL(`${config.directory}/${config.art}/${source}`, base), 'utf8');
-      await page.setContent(`<style>body{margin:0}svg{display:block;width:100vw;height:100vh}</style>${svg}`);
-      const png = await page.screenshot({ type: 'png' });
-      if (png.length > 320 * 1024) throw new Error(`${edition} ${kind} exceeds artwork limit`);
-      descriptor.presentation[kind] = `data:image/png;base64,${png.toString('base64')}`;
-    } finally {
-      await page.close();
-    }
+  for (const kind of ['icon', 'cover', 'background']) {
+    const png = await readFile(new URL(config.directory + '/' + config.art + '/' + kind + '.png', base));
+    if (png.length > 320 * 1024) throw new Error(edition + ' ' + kind + ' exceeds artwork limit');
+    descriptor.presentation[kind] = 'data:image/png;base64,' + png.toString('base64');
   }
   files['game.json'] = Buffer.from(JSON.stringify(descriptor));
   const version = files['server.js'].toString().match(/\bversion:\s*'([0-9]+\.[0-9]+\.[0-9]+)'/)?.[1];

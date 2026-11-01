@@ -1,0 +1,13 @@
+{
+  "role": "game-avatar",
+  "source": "icon-source.png",
+  "sourceSha256": "bb9c763788961f60e13f25361f11bf88566e624639af0622447322270bab368b",
+  "userSelected": true,
+  "export": "game-packages/uno/no-mercy/art/icon.png",
+  "size": [
+    512,
+    512
+  ],
+  "fit": "contain",
+  "backgroundUsage": false
+}

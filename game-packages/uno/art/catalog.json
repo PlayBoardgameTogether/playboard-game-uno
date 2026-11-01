@@ -1,0 +1,14 @@
+{
+  "version": "1.2.1",
+  "style": "pixel-art",
+  "authoring": "Codex built-in imagegen",
+  "license": "GPL-3.0-only",
+  "files": {
+    "icon": "icon.png"
+  },
+  "runtimeGameVersion": "1.2.1",
+  "usage": {
+    "icon": "game-avatar"
+  },
+  "backgroundPolicy": "Existing main-branch artwork retained; landscape explorations under design are drafts only."
+}

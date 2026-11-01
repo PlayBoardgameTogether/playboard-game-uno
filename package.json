@@ -11,7 +11,7 @@
   "scripts": {
     "test": "vitest run tests/unit",
     "build": "node scripts/package-uno.mjs",
-    "verify": "vitest run tests/release.test.ts",
+    "verify": "vitest run tests/release.test.ts tests/player-names.test.ts",
     "test:ui": "node scripts/check-uno-package.mjs"
   },
   "devDependencies": {

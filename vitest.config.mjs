@@ -11,6 +11,6 @@ export default defineConfig({
   },
   test: {
     fileParallelism: false,
-    include: ['tests/unit/**/*.test.ts', 'tests/release.test.ts'],
+    include: ['tests/unit/**/*.test.ts', 'tests/release.test.ts', 'tests/player-names.test.ts'],
   },
 });

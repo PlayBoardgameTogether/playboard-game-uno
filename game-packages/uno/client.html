@@ -102,6 +102,7 @@ summary { width: fit-content; min-height: 44px; padding: 10px 0; }
   .card:not(:disabled):hover { transform: translateY(-4px); }
   .card { transition: transform .12s; }
 }
+#players .player, #players strong, #status { min-width: 0; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -149,6 +150,12 @@ const names = { red: '红', yellow: '黄', green: '绿', blue: '蓝', wild: '万
 const values = { skip: '⊘', reverse: '⇄', draw2: '+2', draw4: '+4', wild: '★', wild4: '+4', reverse4: '⇄+4', draw6: '+6', draw10: '+10', skipAll: '⊘∀', discardAll: '≋', roulette: '◉' };
 const descriptions = { skip: '跳过', reverse: '反转', draw2: '摸二张', draw4: '摸四张', wild: '选颜色', wild4: '摸四张', reverse4: '反转 +4', draw6: '摸六张', draw10: '摸十张', skipAll: '跳过所有人', discardAll: '同色全弃', roulette: '颜色轮盘', '7': '换手', '0': '轮转' };
 const $ = id => document.getElementById(id);
+let playerNames = {};
+function playerName(seatId, ownSeatId, fallback) {
+  const raw = Object.hasOwn(playerNames, seatId) ? playerNames[seatId] : undefined;
+  const name = typeof raw === 'string' ? raw.trim() : '';
+  return name ? name + (seatId === ownSeatId ? '（你）' : '') : fallback;
+}
 let view = null;
 let busy = true;
 let pending = false;
@@ -157,7 +164,7 @@ let sentSnapshot = null;
 let snapshot = null;
 let sorted = false;
 let handSignature = null;
-const seatLabel = seat => `座位 ${view.players.findIndex(player => player.seatId === seat) + 1}`;
+const seatLabel = seat => playerName(seat, view.you, `座位 ${view.players.findIndex(player => player.seatId === seat) + 1}`);
 const mercy = () => view.edition === 'no-mercy';
 function face(element, card) {
   element.className = `card ${card.color}`;
@@ -243,7 +250,7 @@ function render() {
     item.className = 'player' + (player.seatId === view.currentSeat && !view.winners.length ? ' current' : '') + (player.eliminated ? ' eliminated' : '');
     if (player.seatId === view.currentSeat && !view.winners.length) item.setAttribute('aria-current', 'true');
     const name = document.createElement('span');
-    name.textContent = `${seatLabel(player.seatId)}${player.seatId === view.you ? ' · 你' : ''}`;
+    name.textContent = playerName(player.seatId, view.you, seatLabel(player.seatId) + (player.seatId === view.you ? ' · 你' : ''));
     const count = document.createElement('strong');
     count.textContent = player.eliminated ? '已淘汰' : `${player.count} 张${player.count === 1 ? ' · UNO' : ''}`;
     if (player.count === 1 || (mercy() && player.count >= 20)) count.className = 'warning';
@@ -333,15 +340,18 @@ window.addEventListener('message', event => {
   const changed = encoded !== snapshot;
   const nextBusy = !!event.data.busy;
   const busyChanged = nextBusy !== busy;
+  const nextNames = event.data.playerNames && typeof event.data.playerNames === 'object' ? event.data.playerNames : {};
+  const namesChanged = JSON.stringify(nextNames) !== JSON.stringify(playerNames);
   // Idle echoes of the same view keep both the draft and the submit lock intact.
   if (pending && (encoded !== sentSnapshot || nextBusy || (busy && !nextBusy))) pending = false;
-  if (!changed && !busyChanged) return;
+  if (!changed && !busyChanged && !namesChanged) return;
   if (selected && (changed || nextBusy)) closePicker();
   if (changed) {
     $('uno').checked = false;
     if (view?.you !== incoming.you) { sorted = false; handSignature = null; }
   }
   busy = nextBusy;
+  playerNames = nextNames;
   view = incoming;
   snapshot = encoded;
   if (!pending) sentSnapshot = null;

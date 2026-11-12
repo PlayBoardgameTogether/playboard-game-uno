@@ -33,6 +33,10 @@ pnpm verify
 
 玩法、素材和历史说明见 [游戏说明](game-packages/uno/README.md)。其中平台集成/E2E 命令需在平台主仓库运行；本仓库的独立验证命令以上文为准。
 
+## 手机行动回归
+
+`pnpm test:ui` 检查 1440×900、1280×800、390×844、320×740，手机启用触摸仿真。两种玩法均覆盖 24 张手牌末端选色、相同快照保留草稿/焦点、取消和失败重试；毫不留情另检查累计罚牌、换手、轮盘与抓漏喊。固定 View 与真实平台联机结果分别记录，见 [D11 验收](docs/d11-mobile-validation-2026-11-12.md)。
+
 ## 许可证
 
 Copyright (C) 2026 TheTopBoardgameAssociation

@@ -14,7 +14,7 @@
 
 ## 实际命令与结果
 
-以下 pnpm 命令带 `--config.verify-deps-before-run=false`，在按自身冻结锁文件安装依赖后运行：
+运行脚本的 pnpm 命令带 `--config.verify-deps-before-run=false`，在按自身冻结锁文件安装依赖后运行：
 
 | 命令 | 结果 |
 | --- | --- |
@@ -35,3 +35,9 @@
 平台官方目录与本仓库 `release.config.json` 的仓库、两个游戏 ID、包名前缀和玩法一致，**登记已核对，无需改动**。GitHub 实时只读核对正式 Release 仍为 `uno-v1.2.0`、`uno-no-mercy-v1.0.0`，各含精确 ZIP、release.json 和 SHA256SUMS；main 的 1.2.1/1.0.1 头像候选仍未发布。本轮只新增测试/内部文档，不升游戏或平台版本，不打标签、发布或触发生产安装。
 
 未验收物理手机、Safari/WebKit、完整屏幕阅读器或真实模型；本轮不宣称已修改线上游戏。提交、PR 和审查状态以实际 GitHub 交付为准，平台来源锁保持。
+
+## 远程 CI 环境修复
+
+首提交 `e631eda` 已推送并创建 [PR #4](https://github.com/PlayBoardgameTogether/playboard-game-uno/pull/4)。[首轮 CI](https://github.com/PlayBoardgameTogether/playboard-game-uno/actions/runs/43150227442) 在浏览器安装步骤失败：`ubuntu-latest` 已指向 Ubuntu 26.04，锁定 Playwright 1.55.0 明确报不支持，规则/构建/verify 均未执行，不算远程通过。
+
+仅将 check job 固定为 `ubuntu-24.04`，保留冻结依赖、浏览器安装与全部原检查；补上 `pnpm test:ui`，让本轮四视口回归进入 CI。Playwright 1.55 的本地安装源码含 ubuntu24.04-x64 浏览器依赖映射，与其[对应版本源码](https://github.com/microsoft/playwright/blob/v1.55.0/packages/playwright-core/src/server/utils/hostPlatform.ts)一致，不通过宿主平台伪装或删除检查解决。发布 job/标签触发规则保持，测试/CI 修复不升产品版本。后续 CI 状态另按实际结果记录。

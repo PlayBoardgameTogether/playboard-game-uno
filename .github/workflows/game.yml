@@ -16,7 +16,8 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # Keep the runner compatible with the frozen Playwright 1.55 browser tooling.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -29,6 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test
+      - run: pnpm test:ui
       - run: pnpm build
       - run: pnpm verify
       - uses: actions/upload-artifact@v7

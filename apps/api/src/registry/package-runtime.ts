@@ -2,6 +2,7 @@ import { getQuickJS, type QuickJSWASMModule } from 'quickjs-emscripten';
 import { manifestSchema, type GameExtension, type Json, type RandomSource } from '@boardgame/game-sdk';
 import { z } from 'zod';
 import { AppError } from '../errors.js';
+import { invalidPackagePublicResult, packagePublicResult } from './package-public-result.js';
 
 const transition = z.object({ state: z.json(), events: z.array(z.json()).max(1000) }).strict();
 const decisionContextSchema = z.object({
@@ -16,7 +17,7 @@ export class PackageRuntime {
   private constructor(private readonly engine: QuickJSWASMModule) {}
   static async create() { return new PackageRuntime(await getQuickJS()); }
 
-  private evaluate(source: string, expression: string): Json {
+  private evaluate(source: string, expression: string, maxBytes = 256 * 1024): Json {
     const runtime = this.engine.newRuntime();
     runtime.setMemoryLimit(16 * 1024 * 1024);
     runtime.setMaxStackSize(512 * 1024);
@@ -37,7 +38,8 @@ export class PackageRuntime {
       let encoded: string;
       try { encoded = context.getString(result.value); }
       finally { result.value.dispose(); }
-      if (Buffer.byteLength(encoded) > 256 * 1024) {
+      if (Buffer.byteLength(encoded) > maxBytes) {
+        if (maxBytes < 256 * 1024) throw invalidPackagePublicResult();
         throw new AppError('VALIDATION_ERROR', '游戏规则结果超过 256 KiB', 422);
       }
       return z.json().parse(JSON.parse(encoded));
@@ -45,6 +47,46 @@ export class PackageRuntime {
       context.dispose();
       runtime.dispose();
     }
+  }
+
+  publicResult(source: string) {
+    if (this.evaluate(source, "typeof game.getPublicResult === 'function'") !== true) {
+      throw new AppError('VALIDATION_ERROR', '游戏包缺少公开结果方法', 400);
+    }
+    return (outcome: unknown, seats: string[]) => {
+      // Do not use the generic call: undefined must never become an explicit null.
+      // Validate JSON types before serialization can erase undefined/NaN or call toJSON.
+      let output: Json;
+      try {
+        output = this.evaluate(
+          source,
+          `(() => {
+        const value = game.getPublicResult(${JSON.stringify(outcome)});
+        const plain = object => object !== null && typeof object === 'object' &&
+          (Object.getPrototypeOf(object) === Object.prototype || Object.getPrototypeOf(object) === null);
+        if (value === null) return { valid: true, value: null };
+        if (!plain(value) || Reflect.ownKeys(value).some(key => !['winners', 'scores'].includes(key)) ||
+          !Array.isArray(value.winners) || value.winners.length < 1 || value.winners.length > 20 ||
+          Array.from(value.winners).some(id => typeof id !== 'string') ||
+          (Object.hasOwn(value, 'scores') && (!plain(value.scores) ||
+            Object.values(value.scores).some(score => typeof score !== 'number' || !Number.isFinite(score))))) {
+          return { valid: false };
+        }
+        return { valid: true, value };
+        })()`,
+          16 * 1024,
+        );
+      } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw invalidPackagePublicResult();
+      }
+      const parsed = z
+        .object({ valid: z.literal(true), value: z.json() })
+        .strict()
+        .safeParse(output);
+      if (!parsed.success) throw invalidPackagePublicResult();
+      return packagePublicResult(parsed.data.value, seats);
+    };
   }
 
   extension(source: string) {

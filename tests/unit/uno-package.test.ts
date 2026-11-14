@@ -14,6 +14,7 @@ type View = { you: string | null; hand: Card[]; players: { seatId: string; count
   color: string; direction: number; currentSeat: string; deckCount: number; drawn: string | null;
   winners: string[]; last: string; actions: Action[] };
 // The package boundary is JSON-only. This test adapter names the package's documented JSON shapes.
+let project: ReturnType<PackageRuntime['publicResult']>;
 let game: GameExtension<State, Record<string, never>, Action, View, unknown, unknown>;
 const actor = (seatId: string) => ({ kind: 'seat' as const, seatId, controllerEpoch: 0 });
 const viewer = (seatId: string) => ({ kind: 'seat' as const, seatId });
@@ -44,6 +45,7 @@ describe('UNO upload package in the actual QuickJS runtime', () => {
     };
     const parsed = readGamePackage(Buffer.from(zipSync(files)));
     const runtime = await PackageRuntime.create();
+    project = runtime.publicResult(parsed.server);
     game = runtime.extension(parsed.server) as unknown as typeof game;
   });
   it('passes installation lifecycle for min/max seats, deterministic deals and exact 108-card recovery', () => {
@@ -119,6 +121,9 @@ describe('UNO upload package in the actual QuickJS runtime', () => {
     const result = game.applyAction(state, actor('a'), play('red.draw2.0'), rng).state;
     expect(result.hands[1]!.length).toBe(3); expect(result.winners).toEqual(['a']);
     expect(game.getOutcome(result)).toEqual({ status: 'finished', winners: ['a'] });
+    expect(project(game.getOutcome(result), result.seats)).toEqual({
+      players: [{ seatId: 'a', winner: true }, { seatId: 'b', winner: false }],
+    });
     expect(() => game.applyAction(result, actor('a'), { type: 'draw' }, rng)).toThrow();
     expect(game.getView(result, viewer('a')).actions).toEqual([]);
   });
@@ -134,6 +139,28 @@ describe('UNO upload package in the actual QuickJS runtime', () => {
     let blocked = game.applyAction(state, actor('a'), { type: 'draw' }, rng).state;
     blocked = game.applyAction(blocked, actor('b'), { type: 'draw' }, rng).state;
     expect(blocked.winners).toEqual(['a']);
+  });
+  it('projects only explicit public winners and never synthesizes scores', () => {
+    expect(project({ status: 'ongoing' }, ['a', 'b'])).toBeNull();
+    expect(project({ status: 'finished', winners: ['b'], secret: 'private-marker' }, ['a', 'b'])).toEqual({
+      players: [{ seatId: 'a', winner: false }, { seatId: 'b', winner: true }],
+    });
+  });
+  it('preserves genuine shared winners at the existing turn limit', () => {
+    const { state, rng } = initial(3);
+    state.turns = 1999;
+    let result = game.applyAction(game.deserialize(state), actor('a'), { type: 'draw' }, rng).state;
+    if (result.drawn !== null) {
+      result = game.applyAction(result, actor('a'), { type: 'pass' }, rng).state;
+    }
+    expect(result.winners).toEqual(['b', 'c']);
+    expect(project(game.getOutcome(game.deserialize(game.serialize(result))), result.seats)).toEqual({
+      players: [
+        { seatId: 'a', winner: false },
+        { seatId: 'b', winner: true },
+        { seatId: 'c', winner: true },
+      ],
+    });
   });
   it('never exposes opponents hands, deck order or private events, and accepts JSONB key order', () => {
     const { state } = initial();
@@ -170,6 +197,9 @@ describe('UNO upload package in the actual QuickJS runtime', () => {
       }
       expect(state.winners.length).toBeGreaterThan(0);
       expect(game.getOutcome(state)).toHaveProperty('status', 'finished');
+      expect(project(game.getOutcome(state), state.seats)).toEqual({
+        players: state.seats.map(seatId => ({ seatId, winner: state.winners.includes(seatId) })),
+      });
     }
   }, 30000);
 });

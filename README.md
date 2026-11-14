@@ -33,6 +33,14 @@ pnpm verify
 
 玩法、素材和历史说明见 [游戏说明](game-packages/uno/README.md)。其中平台集成/E2E 命令需在平台主仓库运行；本仓库的独立验证命令以上文为准。
 
+## 公开胜者试点（候选）
+
+休闲版 **1.2.1 → 1.3.0** 声明 `publicResult: "winners-scores-v1"`，由受限 QuickJS 的同步 `getPublicResult(outcome)` 只返回权威胜者；支持并列，不合成分数。内容规则仍为 1.1.0，资源与桌面不变；毫不留情保持 1.0.1，不启用该能力。
+
+需要平台 **1.3.0 的 D16 兼容能力**。平台候选尚未部署，不能先发布依赖它的游戏标签；旧平台会拒绝新 ZIP。先验证平台部署和降级门槛，再审核发布新游戏。旧 1.2.0/1.2.1 对局继续锁定原包，不回填历史结果。
+
+独立验证所需的平台快照固定到 [D16 提交 688dd6f](https://github.com/PlayBoardgameTogether/PlayBoardgameTogether/commit/688dd6f452f12506f39a3d8905e82e5208bbe79e)，来源摘要与唯一导入路径适配见 [快照记录](tests/fixtures/public-result-platform.json)；SOURCE.json 保留初始导出事实。新休闲版 `release.json.compatibilitySource` 指向该快照，毫不留情单独发布仍使用原快照。版本化旧解析器仅用于验证旧平台拒绝新声明，不能作为另一条生产运行时维护来源。完整交付见 [D17 记录](docs/d17-public-results-2026-11-14.md)。
+
 ## 手机行动回归
 
 `pnpm test:ui` 检查 1440×900、1280×800、390×844、320×740，手机启用触摸仿真。两种玩法均覆盖 24 张手牌末端选色、相同快照保留草稿/焦点、取消和失败重试；毫不留情另检查累计罚牌、换手、轮盘与抓漏喊。固定 View 与真实平台联机结果分别记录，见 [D11 验收](docs/d11-mobile-validation-2026-11-12.md)。

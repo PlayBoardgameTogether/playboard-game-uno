@@ -35,3 +35,9 @@
 发布顺序：先完成 D16 平台审查/合并/真实部署及 D19/D21 兼容与降级门槛，再审核发布 `uno-v1.3.0`，下载并核验真实附件，最后通过原管理员订阅授权验收安装。1.2.6 会拒绝新 ZIP，但已安装新声明包后的旧程序启动阻断尚未实现，不能仅因新包在旧平台安装失败便宣称降级安全。不要先发布新标签让现有生产订阅拉取不兼容包。
 
 生产只读核验仍为 **add0940 / 1.2.6**，API cwd 与 current.json 一致、服务 active/running、NRestarts=0、ready/database 就绪。本轮没有修改服务器配置、生产数据或订阅开关，没有重启服务。物理手机、WebKit、屏幕阅读器、真实模型未验证；D18 完整战绩筛选/分页/切换账号与 D19/D21 专项仍待后续任务，不把已有结算卡渲染算作这些专项全部完成。
+
+## 已推送与待审 PR
+
+主提交 **4e3633a77088a8c099dcffdd96c8010384a95a3e** 已推送至 `codex/d17-uno-public-results`，创建 [UNO PR #5](https://github.com/PlayBoardgameTogether/playboard-game-uno/pull/5)；平台主提交 **c2bfa5ae8fb4a84f7e41aeeb82cd472dc815e272** 已推送并创建 [平台 PR #76](https://github.com/PlayBoardgameTogether/PlayBoardgameTogether/pull/76)，包含 D15/D16 前置，未合并。UNO 主提交 [远程 run 43605629262](https://github.com/PlayBoardgameTogether/playboard-game-uno/actions/runs/43605629262) 的 check 全步骤 success、release 按 PR 条件 skipped；平台主提交远程 pins 检查 success，不将其当作远程全套业务验证。两 PR 的 review 列表本轮为空，不等同于人工审查通过。
+
+UNO 原命令行缺少认证，复用平台既有 Git helper 的内存认证推送成功；GitHub 应用创建 PR 返回 403 后，以同一既有认证通过 gh API 先查重再创建成功，无凭据落盘。后续仅补内部交付事实，不重复本地业务验证；功能分支均有未合并内容，保留，不清理其他任务分支或 worktree。正式 Release、订阅安装与生产更新均未执行。

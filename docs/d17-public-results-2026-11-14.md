@@ -20,7 +20,7 @@
 | `GITHUB_REF_TYPE=tag GITHUB_REF_NAME=uno-v1.3.0 pnpm ... verify` | 最终发布元数据修改后 **1/1**；dist/release 仅休闲版 ZIP、release.json、SHA256SUMS；本地 commit=null，不计正式 Release |
 | `pnpm ... test:ui` | 两玩法 1440×900、1280×800、390×844、320×740 操作检查通过；手机触摸、长手牌、草稿、失败恢复及私密消息桥保持 |
 | 来源核对 | 四个快照与 D16 原文件逐字节一致（撤销已记录导入适配后）；平台 catalog、release.config、manifest 的仓库、名称、ID、archive/玩法对齐，**登记已核对，无需改动** |
-| 平台真实安装及对局 | 双真人、真人/免费脚本、原 1.2.0 活动局三个独立集成用例分批通过；桌面/手机真实 E2E **2/2**，详见平台 D17 记录 |
+| 平台真实安装及对局 | 双真人、真人/免费脚本、原 1.2.0 活动局最终专用入口集成 **3/3**，无 skip；桌面/手机真实 E2E **2/2**，详见平台 D17 记录 |
 
 本地休闲版 ZIP SHA-256：`6882d00805f66b60ad71e7e71af208b52f96b253d601d70ff515914d78a10a1e`。PNG 渲染可能随运行环境变化，正式发布后须重新核对真实附件，不能将此值预当作正式 Release 摘要。
 
@@ -41,3 +41,5 @@
 主提交 **4e3633a77088a8c099dcffdd96c8010384a95a3e** 已推送至 `codex/d17-uno-public-results`，创建 [UNO PR #5](https://github.com/PlayBoardgameTogether/playboard-game-uno/pull/5)；平台主提交 **c2bfa5ae8fb4a84f7e41aeeb82cd472dc815e272** 已推送并创建 [平台 PR #76](https://github.com/PlayBoardgameTogether/PlayBoardgameTogether/pull/76)，包含 D15/D16 前置，未合并。UNO 主提交 [远程 run 43605629262](https://github.com/PlayBoardgameTogether/playboard-game-uno/actions/runs/43605629262) 的 check 全步骤 success、release 按 PR 条件 skipped；平台主提交远程 pins 检查 success，不将其当作远程全套业务验证。两 PR 的 review 列表本轮为空，不等同于人工审查通过。
 
 UNO 原命令行缺少认证，复用平台既有 Git helper 的内存认证推送成功；GitHub 应用创建 PR 返回 403 后，以同一既有认证通过 gh API 先查重再创建成功，无凭据落盘。后续仅补内部交付事实，不重复本地业务验证；功能分支均有未合并内容，保留，不清理其他任务分支或 worktree。正式 Release、订阅安装与生产更新均未执行。
+
+平台收尾提供持久的 `vitest.uno-results.config.ts` / `playwright.uno-results.config.ts` 入口，专项文件用 `.compat.ts` 命名，普通测试发现不误收集外部候选 ZIP；保持原隔离准备链与断言，最终集成 3/3、双端 E2E 2/2 均无 skip。执行命令与早期失败仍保留在平台 D17 记录，未将跳过或历史结果计为最终通过。

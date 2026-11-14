@@ -1,0 +1,13 @@
+{
+  "repository": "PlayBoardgameTogether/PlayBoardgameTogether",
+  "commit": "688dd6f452f12506f39a3d8905e82e5208bbe79e",
+  "platformVersion": "1.3.0",
+  "status": "D16 candidate, not deployed",
+  "files": {
+    "apps/api/src/catalog/game-package.ts": "c6463d5cfab6720e2d81407737c1a4e777f80f4a326760ccd2be1aaac251a444",
+    "apps/api/src/registry/package-runtime.ts": "d0f97045d3be36268cb3c6e65d664640b852882b85136bb9acf2773000ec11ee",
+    "apps/api/src/registry/package-public-result.ts": "5034562b5f8882007406fc25a58672770dec477f46b382b14d31018b68513f9c",
+    "packages/protocol/src/match-result.ts": "934bb1ff1dfc93db44ccefc3193d53122f4cb0a73c1625ec0cb76457a4c12931"
+  },
+  "adaptation": "package-public-result.ts imports exact copied match-result.ts by relative path; no SDK core changes"
+}

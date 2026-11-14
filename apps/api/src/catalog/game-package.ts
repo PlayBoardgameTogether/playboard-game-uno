@@ -2,11 +2,13 @@ import { unzipSync, strFromU8 } from 'fflate';
 import { z } from 'zod';
 import { AppError } from '../errors.js';
 import { packagePresentationSchema } from './package-art.js';
+import { packagePublicResultContractSchema } from '../registry/package-public-result.js';
 
 export const packageDescriptorSchema = z.object({
   format: z.literal('boardgame-package-v1'),
   rules: z.string().trim().min(1).max(16000),
   presentation: packagePresentationSchema.optional(),
+  publicResult: packagePublicResultContractSchema.optional(),
 }).strict();
 
 /** Fixed files only; inspect central-directory size/flags before any decompression. Never extract to disk. */

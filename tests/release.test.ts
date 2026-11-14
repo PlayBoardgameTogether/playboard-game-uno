@@ -4,12 +4,16 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { it } from 'vitest';
 import { readGamePackage } from '../apps/api/src/catalog/game-package.js';
 import { PackageRuntime } from '../apps/api/src/registry/package-runtime.js';
+import { readGamePackage as readLegacyPackage } from './fixtures/platform-1.2.6-game-package.js';
 import { DeterministicRng } from '../packages/game-sdk/src/index.js';
 
 it('validates built ZIPs in the platform runtime and prepares exact-version release assets', async () => {
   const root = new URL('../', import.meta.url);
   const config = JSON.parse(await readFile(new URL('release.config.json', root), 'utf8'));
   const origin = JSON.parse(await readFile(new URL('SOURCE.json', root), 'utf8'));
+  const resultCompatibility = JSON.parse(
+    await readFile(new URL('tests/fixtures/public-result-platform.json', root), 'utf8'),
+  );
   const output = new URL('dist/release/', root);
   const tag = process.env.GITHUB_REF_TYPE === 'tag' ? process.env.GITHUB_REF_NAME : null;
   const runtime = await PackageRuntime.create();
@@ -27,6 +31,18 @@ it('validates built ZIPs in the platform runtime and prepares exact-version rele
     const bytes = await readFile(new URL(`dist/game-packages/${filename}`, root));
     const parsed = readGamePackage(bytes);
     const game = runtime.extension(parsed.server);
+    if (game.manifest.id === 'online.uno') {
+      assert.equal(parsed.publicResult, 'winners-scores-v1');
+      assert.throws(() => readLegacyPackage(bytes), 'old platform must reject this new contract');
+      const project = runtime.publicResult(parsed.server);
+      assert.equal(project({ status: 'ongoing' }, ['a', 'b']), null);
+      assert.deepEqual(project({ status: 'finished', winners: ['b'] }, ['a', 'b']), {
+        players: [{ seatId: 'a', winner: false }, { seatId: 'b', winner: true }],
+      });
+    } else {
+      assert.equal(parsed.publicResult, undefined);
+      assert.doesNotThrow(() => readLegacyPackage(bytes));
+    }
     const asset = config.assets.find((item: { id: string }) => item.id === game.manifest.id);
     assert.ok(asset, `unregistered game: ${game.manifest.id}`);
     assert.ok(!seen.has(asset.id), 'duplicate game');
@@ -77,7 +93,9 @@ it('validates built ZIPs in the platform runtime and prepares exact-version rele
       {
         repository: config.repository,
         commit: process.env.GITHUB_SHA ?? null,
-        compatibilitySource: origin.commit,
+        compatibilitySource: releases.some(asset => asset.gameId === 'online.uno')
+          ? resultCompatibility.commit
+          : origin.commit,
         packages: releases.map((asset) => ({
           gameId: asset.gameId,
           version: asset.version,

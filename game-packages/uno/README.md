@@ -4,8 +4,10 @@ UNO 按独立规则扩展组织。当前提供：
 
 | 扩展键 | 游戏与精确版本 | 人数 | 输出 ZIP |
 | --- | --- | --- | --- |
-| `casual` | `online.uno@1.2.0` · UNO · 休闲版 | 2–4 | `uno-1.2.0.zip` |
-| `no-mercy` | `online.uno-no-mercy@1.0.0` · UNO · 毫不留情 | 2–6 | `uno-no-mercy-1.0.0.zip` |
+| `casual` | `online.uno@1.3.0`（候选） · UNO · 休闲版 | 2–4 | `uno-1.3.0.zip` |
+| `no-mercy` | `online.uno-no-mercy@1.0.1` · UNO · 毫不留情 | 2–6 | `uno-no-mercy-1.0.1.zip` |
+
+休闲版候选新增公开胜者投影，须先部署平台 1.3.0 兼容能力；旧包保持原结果语义。发布顺序、快照来源与验收见 [D17 记录](../../docs/d17-public-results-2026-11-14.md)。
 
 ## 打包与使用
 

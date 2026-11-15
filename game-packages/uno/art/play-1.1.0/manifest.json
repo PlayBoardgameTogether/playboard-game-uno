@@ -1,0 +1,29 @@
+{
+  "version": "1.1.0",
+  "kind": "presentation-art",
+  "game": "uno",
+  "ruleVersionUnchanged": true,
+  "assets": [
+    {
+      "role": "icon",
+      "file": "icon.png",
+      "sha256": "89dfe85155b21f77719a2ad80f70b970a0fe80ff0e99c8bb3a1c17d34a90aa56",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "role": "cover",
+      "file": "cover.png",
+      "sha256": "511ef7b84d126bf8d9a35d4656150ac69317d57a251a6380ec3b5bb6ec217ad6",
+      "width": 960,
+      "height": 600
+    },
+    {
+      "role": "background",
+      "file": "background.png",
+      "sha256": "7d2d0042de0c880bcbaabcfc43fe2a07f960349760b8358cc7d9a451bc51ff9b",
+      "width": 1280,
+      "height": 720
+    }
+  ]
+}

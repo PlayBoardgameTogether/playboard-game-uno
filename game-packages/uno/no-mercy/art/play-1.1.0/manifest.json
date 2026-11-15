@@ -1,0 +1,29 @@
+{
+  "version": "1.1.0",
+  "kind": "presentation-art",
+  "game": "uno-no-mercy",
+  "ruleVersionUnchanged": true,
+  "assets": [
+    {
+      "role": "icon",
+      "file": "icon.png",
+      "sha256": "f706ac02f515ef284601bcfc47ff6eb5a369da39b2d66155eb8fc0bae7955bfe",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "role": "cover",
+      "file": "cover.png",
+      "sha256": "7aa4d282696412a42e1ea81608d9ab1e3994295e161b575ef90013a9bcd93622",
+      "width": 960,
+      "height": 600
+    },
+    {
+      "role": "background",
+      "file": "background.png",
+      "sha256": "04fd7f3f3076692623508b9e1bac1707de5d2fcb86f8d15a95ee8411f640668d",
+      "width": 1280,
+      "height": 720
+    }
+  ]
+}

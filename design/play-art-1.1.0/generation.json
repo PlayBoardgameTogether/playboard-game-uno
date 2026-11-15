@@ -1,0 +1,93 @@
+{
+  "version": "1.1.0",
+  "kind": "presentation-art",
+  "generator": "built-in image_gen",
+  "license": "GPL-3.0-only",
+  "rulesChanged": false,
+  "assets": [
+    {
+      "game": "uno",
+      "role": "icon",
+      "prompt": "Use case: stylized-concept. NEW original artwork for a premium PlayBoard board game platform. Sophisticated richly detailed fine PIXEL ART, visible tiny square pixel clusters, tactile physical board game pieces, refined material textures, soft daylight, restrained highlights and natural shadows, mature inviting mood, clear readable silhouette. Coordinated natural wood and dark navy with theme-specific colors. No UI, no paragraphs, no title, no brand logo, no watermark, no border. Avoid generic flat vector, blurry painterly style, glossy casino, low detail cartoon. Asset: square 1024x1024 game avatar. Close-up central iconic arrangement of the main game objects, all important edges visible, 8% breathing room, instantly recognizable even at 64px. Subject: a lively tabletop card game of red, yellow, blue and green number cards, restrained original geometric card backs, a few bold curved arrow symbols, warm wood and navy felt, no brand logos.",
+      "original": "design/play-art-1.1.0/uno/icon-original.png",
+      "source": "game-packages/uno/art/play-1.1.0/icon.png",
+      "originalSha256": "23e4e5cdc39fdec82ca4cf1307a0f4af321cbcfb10612b06031261d704b81a05",
+      "sourceSha256": "89dfe85155b21f77719a2ad80f70b970a0fe80ff0e99c8bb3a1c17d34a90aa56",
+      "webp": "uno-icon.webp",
+      "webpSha256": "87e391cb6bbed0d1140665cb7f9f9f0ce3bca2b11851b7a626adbbd0c080dcf5",
+      "width": 512,
+      "height": 512,
+      "bytes": 114932
+    },
+    {
+      "game": "uno",
+      "role": "cover",
+      "prompt": "Use case: stylized-concept. NEW original landscape 16:10 premium board game illustration for PlayBoard. Fine richly detailed PIXEL ART, clearly visible square pixel clusters, tactile physical materials, refined soft light and natural shadows, cohesive navy felt and warm wood palette. Asset role: cover. ONLY original red yellow blue green playing CARDS with digits from 0 through 9, and an original curved arrow action symbol. Physical thin playing cards with rounded corners, large clear single digit numbers 3,4,6,7,8,9. Show one facedown deck and one discard card on navy felt, a fan of hand cards in the foreground. All numbers MUST be single digits, no 10,11,12,13, no multi digit numbers. NO tile racks, NO numbered tiles, NO Rummikub sets, NO wooden tokens, NO meeples, NO island, NO board. Original geometric dark blue card backs with small gold outline; no UNO logo. Not a UI screenshot. No border, no watermark, no title, no brand logo. Avoid blurry paint, flat vector and glossy casino art.",
+      "original": "design/play-art-1.1.0/uno/cover-original.png",
+      "source": "game-packages/uno/art/play-1.1.0/cover.png",
+      "originalSha256": "383cdbc25899239dde3a9bce363ea7c53c16a8ec95d3a69fced6e21ad27aee20",
+      "sourceSha256": "511ef7b84d126bf8d9a35d4656150ac69317d57a251a6380ec3b5bb6ec217ad6",
+      "webp": "uno-cover.webp",
+      "webpSha256": "abfbce8f0a2aa76a87d672fbadd94bad020dc75273b465c2627a6efdaa944063",
+      "width": 960,
+      "height": 600,
+      "bytes": 207396
+    },
+    {
+      "game": "uno-no-mercy",
+      "role": "icon",
+      "prompt": "Use case: stylized-concept. NEW original artwork for a premium PlayBoard board game platform. Sophisticated richly detailed fine PIXEL ART, visible tiny square pixel clusters, tactile physical board game pieces, refined material textures, soft daylight, restrained highlights and natural shadows, mature inviting mood, clear readable silhouette. Coordinated natural wood and dark navy with theme-specific colors. No UI, no paragraphs, no title, no brand logo, no watermark, no border. Avoid generic flat vector, blurry painterly style, glossy casino, low detail cartoon. Asset: square 1024x1024 game avatar. Close-up central iconic arrangement of the main game objects, all important edges visible, 8% breathing room, instantly recognizable even at 64px. Subject: an intense action-card tabletop game with black card backs, vivid red, gold and cobalt faces, oversized original arrow and plus symbols, dramatic but welcoming warm side light, no brand logos.",
+      "original": "design/play-art-1.1.0/uno-no-mercy/icon-original.png",
+      "source": "game-packages/uno/no-mercy/art/play-1.1.0/icon.png",
+      "originalSha256": "1c1ce28355b18e75cb0dcf5fd59f9ace3ea10c662b060e38c06a2787e850b94b",
+      "sourceSha256": "f706ac02f515ef284601bcfc47ff6eb5a369da39b2d66155eb8fc0bae7955bfe",
+      "webp": "uno-no-mercy-icon.webp",
+      "webpSha256": "bb9f9f88e0b4b557f9be567fbda39fe90ac7b33a44918162cbc8e5f3fff62483",
+      "width": 512,
+      "height": 512,
+      "bytes": 116452
+    },
+    {
+      "game": "uno",
+      "role": "background",
+      "prompt": "Use case: stylized-concept. NEW original landscape 16:10 premium board game illustration for PlayBoard. Fine richly detailed PIXEL ART, clearly visible square pixel clusters, tactile physical materials, refined soft light and natural shadows, cohesive navy felt and warm wood palette. Asset role: background. A quiet inviting sunlit board game cafe table with dark navy felt in the middle. ONLY red yellow blue green physical playing cards fanned at the lower edges, one facedown card deck near the right edge, card backs with restrained original geometric gold outlines. All visible numbers are single digits 0 through 9. Center is empty felt for a UI overlay. NO tile racks, NO tile pieces, NO multi-digit numbers, no numbered wooden tiles, no meeples, no miniature landscapes. Potted greenery and coffee cups in the soft distant background, no text logos. Not a UI screenshot. No border, no watermark, no title, no brand logo. Avoid blurry paint, flat vector and glossy casino art.",
+      "original": "design/play-art-1.1.0/uno/background-original.png",
+      "source": "game-packages/uno/art/play-1.1.0/background.png",
+      "originalSha256": "6ba94ea9a883f1a54141440715666c00c2397ea43e31daba5e1bd568644c6968",
+      "sourceSha256": "7d2d0042de0c880bcbaabcfc43fe2a07f960349760b8358cc7d9a451bc51ff9b",
+      "webp": "uno-background.webp",
+      "webpSha256": "c309d6cfb62ba4231ff9e3d5872c080d2b4ab501365fa8c07dcf1a5ec875af15",
+      "width": 1280,
+      "height": 720,
+      "bytes": 306920
+    },
+    {
+      "game": "uno-no-mercy",
+      "role": "cover",
+      "prompt": "Use case: stylized-concept. NEW original landscape 16:10 premium board game illustration for PlayBoard. Fine richly detailed PIXEL ART, clearly visible square pixel clusters, tactile physical materials, refined soft light and natural shadows, cohesive navy felt and warm wood palette. Asset role: cover. An intense action-CARD game on dark navy felt, close-up of a fanned hand of ORIGINAL red, cobalt and gold playing cards with large curved arrow and plus action symbols. Black card backs with restrained gold geometry, a neat stack of facedown cards and one red discard card, dramatic warm side lighting. ONLY CARDS and table: NO knight figurines, NO miniature figures, NO castles, NO buildings, NO island, NO board, NO numbered tile racks, NO dice, NO chess pieces. No UNO logo, no text, no multi-digit numbers. Not a UI screenshot. No border, no watermark, no title, no brand logo. Avoid blurry paint, flat vector and glossy casino art.",
+      "original": "design/play-art-1.1.0/uno-no-mercy/cover-original.png",
+      "source": "game-packages/uno/no-mercy/art/play-1.1.0/cover.png",
+      "originalSha256": "500e8c1079a36bd03b8bf2062e797e0142c352b39a234f2320b9ce6dc1e45e1b",
+      "sourceSha256": "7aa4d282696412a42e1ea81608d9ab1e3994295e161b575ef90013a9bcd93622",
+      "webp": "uno-no-mercy-cover.webp",
+      "webpSha256": "a673bc9709a77cadc3ae16108df5a682cd2c4176b281b281bcbfc1c506187e0c",
+      "width": 960,
+      "height": 600,
+      "bytes": 218202
+    },
+    {
+      "game": "uno-no-mercy",
+      "role": "background",
+      "prompt": "Use case: stylized-concept. NEW original artwork for a premium PlayBoard board game platform. Sophisticated richly detailed fine PIXEL ART, visible tiny square pixel clusters, tactile physical board game pieces, refined material textures, soft daylight, restrained highlights and natural shadows, mature inviting mood, clear readable silhouette. Coordinated natural wood and dark navy with theme-specific colors. No UI, no paragraphs, no title, no brand logo, no watermark, no border. Avoid generic flat vector, blurry painterly style, glossy casino, low detail cartoon. Asset: wide 16:9 immersive background original art. Rich thematic environment extending around a softly lit tabletop in the foreground, detailed atmosphere at the edges, calm low contrast central area suitable behind game UI, no embedded interface. Subject: an intense action-card tabletop game with black card backs, vivid red, gold and cobalt faces, oversized original arrow and plus symbols, dramatic but welcoming warm side light, no brand logos.",
+      "original": "design/play-art-1.1.0/uno-no-mercy/background-original.png",
+      "source": "game-packages/uno/no-mercy/art/play-1.1.0/background.png",
+      "originalSha256": "9754d90f6bd87fb8a159612d735422b2d55c30bebc6a41c900aaccd569783a3d",
+      "sourceSha256": "04fd7f3f3076692623508b9e1bac1707de5d2fcb86f8d15a95ee8411f640668d",
+      "webp": "uno-no-mercy-background.webp",
+      "webpSha256": "bf4544f47c13e9da4aa2c44a92fa6ae19ef801d411c63f17c61183382bd30e1a",
+      "width": 1280,
+      "height": 720,
+      "bytes": 335284
+    }
+  ]
+}

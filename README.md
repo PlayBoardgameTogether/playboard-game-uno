@@ -48,3 +48,7 @@ Copyright (C) 2026 TheTopBoardgameAssociation
 ## 像素风游戏头像
 
 本轮使用完整方形游戏头像，头像与详情背景分开接入；运行资源、原图及来源 SHA、背景草稿边界和实际检查见 [交付记录](design/pixel-catalog-art/DELIVERY.md)。图稿在本仓库维护，推送不代表已发布或安装。
+
+## 新版展示美术（1.1.0）
+
+新增游戏头像、封面和背景原画，独立资源编号、原稿、提示词、导出校验与发布边界见 [交付记录](design/play-art-1.1.0/DELIVERY.md)。

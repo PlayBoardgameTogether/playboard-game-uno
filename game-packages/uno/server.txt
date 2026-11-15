@@ -59,7 +59,7 @@ function actions(state, index) {
 }
 const game = {
   manifest: {
-    id: 'online.uno', version: '1.2.0', contentVersion: '1.1.0', sdkRange: '^0.1.0',
+    id: 'online.uno', version: '1.2.1', contentVersion: '1.1.0', sdkRange: '^0.1.0',
     name: 'UNO · 休闲版', description: '2–4 人 UNO：数字牌、跳过、反转、+2、万能与 +4。原创桌面，支持真人与 AI。',
     players: { min: 2, max: 4 }, mode: 'rules-driven', capabilities: ['turn-based', 'private-view'],
     defaultAssetPack: { id: 'online.uno.default', version: '1.2.0' }, developmentOnly: false

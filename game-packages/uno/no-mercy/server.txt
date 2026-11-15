@@ -111,7 +111,7 @@ function endTurn(state, from = state.turn, steps = 1) {
 }
 const game = {
   manifest: {
-    id: 'online.uno-no-mercy', version: '1.0.0', contentVersion: '1.0.0', sdkRange: '^0.1.0',
+    id: 'online.uno-no-mercy', version: '1.0.1', contentVersion: '1.0.0', sdkRange: '^0.1.0',
     name: 'UNO · 毫不留情', description: 'UNO 扩展玩法：168 张牌、罚牌叠加、7 换手、0 轮转与 25 张淘汰。',
     players: { min: 2, max: 6 }, mode: 'rules-driven', capabilities: ['turn-based', 'private-view'],
     defaultAssetPack: { id: 'online.uno-no-mercy.default', version: '1.0.0' }, developmentOnly: false

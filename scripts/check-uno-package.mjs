@@ -17,7 +17,11 @@ const baseView = {
 const browser = await chromium.launch();
 try {
   for (const [name, viewport] of [['desktop',{width:1440,height:900}],['laptop',{width:1280,height:800}],['mobile',{width:390,height:844}],['narrow',{width:320,height:740}]]) {
-    const page = await browser.newPage({viewport});
+    const page = await browser.newPage({
+      viewport,
+      isMobile: viewport.width <= 390,
+      hasTouch: viewport.width <= 390,
+    });
     const errors = [];
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('http://uno.test/**', async route=>{
@@ -116,6 +120,76 @@ try {
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.screenshot({path:fileURLToPath(new URL(`${name}-no-mercy.png`,output)),fullPage:true});
     assert.equal(await child.evaluate(()=>globalThis.document.documentElement.scrollWidth<=globalThis.innerWidth),true);
+    // Both editions share this client. Exercise a playable card at the far end
+    // of a long hand, including six seats below No Mercy's elimination limit.
+    for (const edition of ['casual', 'no-mercy']) {
+      const longHand = {
+        ...baseView,
+        edition,
+        phase: 'play',
+        pendingDraw: 0,
+        hand: [
+          ...Array.from({ length: 23 }, (_, index) => ({
+            id: `blue.long.${index}`,
+            color: 'blue',
+            value: String(index % 10),
+          })),
+          baseView.hand[1],
+        ],
+        players: Array.from({ length: edition === 'no-mercy' ? 6 : 4 }, (_, index) => ({
+          seatId: String.fromCharCode(97 + index),
+          count: index === 0 ? 24 : 7,
+        })),
+        actions: baseView.actions.filter(action => action.cardId === 'wild.wild.0'),
+      };
+      await page.evaluate(next => {
+        globalThis.gameView = next;
+        globalThis.publish(false);
+        globalThis.scrollTo(0, globalThis.document.body.scrollHeight);
+      }, longHand);
+      await frame.getByText('你的手牌 · 24 张', { exact: true }).waitFor();
+      const choose = async () => {
+        const card = frame.getByRole('button', { name: '万能色 ★', exact: true });
+        if (viewport.width <= 390) await card.tap();
+        else await card.click();
+      };
+      await choose();
+      const handScroll = await frame.locator('#hand').evaluate(hand => hand.scrollLeft);
+      assert.ok(handScroll > 0, 'the last card must be reachable within the hand strip');
+      await page.evaluate(() => globalThis.publish(false));
+      assert.equal(await frame.getByRole('dialog').isVisible(), true);
+      assert.equal(await frame.locator('#hand').evaluate(hand => hand.scrollLeft), handScroll);
+      assert.equal(await frame.getByRole('button', { name: '红', exact: true })
+        .evaluate(button => button === globalThis.document.activeElement), true);
+      await page.screenshot({
+        path: fileURLToPath(new URL(`${name}-${edition}-long-picker.png`, output)),
+        fullPage: true,
+      });
+      await frame.getByRole('button', { name: '取消出牌' }).press('Escape');
+      assert.equal(await frame.getByRole('button', { name: '万能色 ★', exact: true })
+        .evaluate(button => button === globalThis.document.activeElement), true);
+      const previousCount = await page.evaluate(() => globalThis.actions.length);
+      // The first transport attempt fails without changing the authoritative
+      // view. A second explicit attempt must unlock and retain the chosen action.
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await choose();
+        const color = frame.getByRole('button', { name: '绿', exact: true });
+        if (viewport.width <= 390) await color.tap();
+        else await color.click();
+        await page.waitForFunction(expected => globalThis.actions.length === expected,
+          previousCount + attempt + 1);
+        assert.deepEqual(await page.evaluate(() => globalThis.actions.at(-1)), {
+          type: 'play', cardId: 'wild.wild.0', color: 'green', uno: false,
+        });
+        assert.equal(await frame.locator('#hand button:enabled').count(), 0);
+        await page.evaluate(() => globalThis.publish(false));
+        await frame.getByText('轮到你了', { exact: true }).waitFor();
+      }
+      assert.equal(await child.evaluate(() =>
+        globalThis.document.documentElement.scrollWidth <= globalThis.innerWidth), true);
+      assert.equal(await page.evaluate(() =>
+        globalThis.document.documentElement.scrollWidth <= globalThis.innerWidth), true);
+    }
     const ended = {...baseView,winners:['a'],actions:[]};
     await page.evaluate(view=>{globalThis.gameView=view;globalThis.publish(false);},ended);
     await frame.getByText('本局结束 · 座位 1获胜',{exact:true}).waitFor();

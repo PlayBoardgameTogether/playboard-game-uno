@@ -41,6 +41,9 @@ export async function buildUnoPackage(edition, browser) {
       await page.close();
     }
   }
+  const avatar = await readFile(new URL(config.directory + '/' + config.art + '/icon.png', base));
+  if (avatar.length > 320 * 1024) throw new Error('Avatar exceeds artwork limit');
+  descriptor.presentation.icon = 'data:image/png;base64,' + avatar.toString('base64');
   files['game.json'] = Buffer.from(JSON.stringify(descriptor));
   const version = files['server.js'].toString().match(/\bversion:\s*'([0-9]+\.[0-9]+\.[0-9]+)'/)?.[1];
   if (!version) throw new Error(`Missing version in ${edition}`);

@@ -1,0 +1,13 @@
+{
+  "role": "game-avatar",
+  "source": "icon-source.png",
+  "sourceSha256": "1b82eb36d4bc59767f3ba62e1bb9a527a6a10978ba6f81ff0a925048814a28ce",
+  "userSelected": true,
+  "export": "game-packages/uno/art/icon.png",
+  "size": [
+    512,
+    512
+  ],
+  "fit": "contain",
+  "backgroundUsage": false
+}
